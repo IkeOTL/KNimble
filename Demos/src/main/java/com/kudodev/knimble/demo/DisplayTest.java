@@ -23,7 +23,7 @@ import com.kudodev.knimble.PhysicsSpace;
  */
 public class DisplayTest {
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception {
         new RenderLoop("Display Test", new PhysicsSpace()).start();
     }
 }

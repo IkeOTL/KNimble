@@ -16,17 +16,19 @@
 package com.kudodev.knimble.demo;
 
 import com.kudodev.knimble.PhysicsSpace;
+import com.kudodev.knimble.demo.utils.Model;
+import com.kudodev.knimble.demo.utils.ShaderProgram;
 import org.lwjgl.glfw.*;
 import org.lwjgl.opengl.*;
 import org.lwjgl.system.*;
-
 import java.nio.*;
-
 import static org.lwjgl.glfw.Callbacks.*;
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.system.MemoryStack.*;
 import static org.lwjgl.system.MemoryUtil.*;
+import org.lwjgl.util.par.ParShapes;
+import org.lwjgl.util.par.ParShapesMesh;
 
 /**
  *
@@ -45,13 +47,18 @@ public class RenderLoop {
 
     private final String title;
     private final PhysicsSpace physicsSpace;
+    private ShaderProgram shaderProgram;
 
     public RenderLoop(String title, PhysicsSpace physicsSpace) {
         this.title = title;
         this.physicsSpace = physicsSpace;
     }
 
-    private void loop() {
+    private void loop() throws Exception {
+        shaderProgram = new ShaderProgram();
+
+        Model sphereModel = createSphere(2);
+
         lastFrame = System.nanoTime();
         float delta;
         long newTime;
@@ -65,12 +72,34 @@ public class RenderLoop {
 
             physicsSpace.tick(delta);
 
+            shaderProgram.bind();
+
+            sphereModel.render();
+
+            shaderProgram.unbind();
+
             // render here
             glfwSwapBuffers(window);
         }
+
+        sphereModel.dispose();
     }
 
-    public void start() {
+    private Model createSphere(int level) {
+        ParShapesMesh parShape = ParShapes.par_shapes_create_subdivided_sphere(level);
+
+        short numIndices = (short) (parShape.ntriangles() * 3);
+        FloatBuffer verts = parShape.points(parShape.npoints() * 3);
+        ShortBuffer indices = parShape.triangles(numIndices);
+
+        Model m = new Model(numIndices, verts, indices);
+
+        ParShapes.par_shapes_free_mesh(parShape);
+
+        return m;
+    }
+
+    public void start() throws Exception {
         init();
         loop();
 
@@ -121,7 +150,7 @@ public class RenderLoop {
         }
 
         glfwMakeContextCurrent(window);
-        glfwSwapInterval(1); // vsync
+        glfwSwapInterval(GLFW_TRUE); // vsync
         glfwShowWindow(window);
 
         GL.createCapabilities();
