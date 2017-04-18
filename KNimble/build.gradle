@@ -1,13 +1,10 @@
-if (!hasProperty('mainClass')) {
-    ext.mainClass = ''
-}
-
 repositories {
     maven {
         url 'https://oss.sonatype.org/content/repositories/snapshots/'
     }
 }
 
+project.ext.jomlVersion = '1.9.2'
 dependencies {  
-    compile 'org.joml:joml:1.9.2'
+    compile "org.joml:joml:${jomlVersion}"
 }
