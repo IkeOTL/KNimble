@@ -28,6 +28,7 @@ public class Rigidbody {
 
     private Vector3f velocity = new Vector3f(0);
     private Vector3f position = new Vector3f(0);
+    
 
     public void integrate(float delta) {
         position.fma(delta, velocity);

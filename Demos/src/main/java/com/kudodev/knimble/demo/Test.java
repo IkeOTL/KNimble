@@ -16,7 +16,7 @@
 package com.kudodev.knimble.demo;
 
 import com.kudodev.knimble.Rigidbody;
-import com.kudodev.knimble.colliders.AABBCollider;
+import com.kudodev.knimble.colliders.CubeCollider;
 import com.kudodev.knimble.colliders.Collider;
 import com.kudodev.knimble.colliders.SphereCollider;
 import java.util.ArrayList;

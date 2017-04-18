@@ -41,7 +41,7 @@ public class SphereCollider extends Collider {
     }
 
     @Override
-    public boolean intersectsWith(AABBCollider other) {
+    public boolean intersectsWith(CubeCollider other) {
 
         return false;
     }

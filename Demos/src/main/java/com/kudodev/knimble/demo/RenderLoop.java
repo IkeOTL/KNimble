@@ -22,6 +22,8 @@ import org.lwjgl.glfw.*;
 import org.lwjgl.opengl.*;
 import org.lwjgl.system.*;
 import java.nio.*;
+import org.joml.Matrix4f;
+import org.joml.Vector3f;
 import static org.lwjgl.glfw.Callbacks.*;
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL11.*;
@@ -38,8 +40,11 @@ public class RenderLoop {
 
     // The window handle
     private long window;
-    private int windowWidth = 1600;
-    private int windowHeight = 900;
+    private final int windowWidth = 1600;
+    private final int windowHeight = 900;
+    private final float FOV = (float) Math.toRadians(60.0f);
+    private final float Z_NEAR = 0.01f;
+    private final float Z_FAR = 1000.f;
 
     private long lastFrame;
     private int currFPS, FPS;
@@ -59,6 +64,17 @@ public class RenderLoop {
 
         Model sphereModel = createSphere(2);
 
+        float aspectRatio = (float) windowWidth / windowHeight;
+        Matrix4f projMat = new Matrix4f().perspective(FOV, aspectRatio, Z_NEAR, Z_FAR);
+        Vector3f position = new Vector3f(0, 0, -5);
+        Vector3f rotation = new Vector3f(0, 0, 0);
+        Vector3f scale = new Vector3f(1, 1, 1);
+        Matrix4f modelMat = new Matrix4f().translate(position).
+                rotateX((float) Math.toRadians(rotation.x)).
+                rotateY((float) Math.toRadians(rotation.y)).
+                rotateZ((float) Math.toRadians(rotation.z)).
+                scale(scale);
+        
         lastFrame = System.nanoTime();
         float delta;
         long newTime;
@@ -68,11 +84,15 @@ public class RenderLoop {
             lastFrame = newTime;
 
             glfwPollEvents();
-            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
             physicsSpace.tick(delta);
 
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+            
             shaderProgram.bind();
+
+            shaderProgram.setUniform("modelMat", modelMat);
+            shaderProgram.setUniform("projMat", projMat);
 
             sphereModel.render();
 

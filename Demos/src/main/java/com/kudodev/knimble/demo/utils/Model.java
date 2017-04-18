@@ -17,11 +17,14 @@ package com.kudodev.knimble.demo.utils;
 
 import java.nio.FloatBuffer;
 import java.nio.ShortBuffer;
+import org.joml.Matrix4f;
+import org.joml.Vector3f;
 import static org.lwjgl.opengl.ARBVertexArrayObject.glBindVertexArray;
 import static org.lwjgl.opengl.ARBVertexArrayObject.glDeleteVertexArrays;
 import static org.lwjgl.opengl.ARBVertexArrayObject.glGenVertexArrays;
 import static org.lwjgl.opengl.GL11.GL_FLOAT;
 import static org.lwjgl.opengl.GL11.GL_TRIANGLES;
+import static org.lwjgl.opengl.GL11.GL_UNSIGNED_INT;
 import static org.lwjgl.opengl.GL11.GL_UNSIGNED_SHORT;
 import static org.lwjgl.opengl.GL11.glDrawElements;
 import static org.lwjgl.opengl.GL15.GL_ARRAY_BUFFER;
@@ -62,7 +65,7 @@ public class Model {
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
     }
 
-    public void render() {
+    public void render(/* Matrix4f modelMatrix */) {
         glBindVertexArray(vaoId);
         glEnableVertexAttribArray(0);
         glDrawElements(GL_TRIANGLES, numIndices, GL_UNSIGNED_SHORT, 0);

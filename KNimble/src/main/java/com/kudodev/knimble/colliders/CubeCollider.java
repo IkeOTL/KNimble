@@ -21,9 +21,9 @@ import com.kudodev.knimble.Rigidbody;
  *
  * @author IkeOTL
  */
-public class AABBCollider extends Collider {
+public class CubeCollider extends Collider {
 
-    public AABBCollider(Rigidbody rigidbody) {
+    public CubeCollider(Rigidbody rigidbody) {
         super(rigidbody);
     }
 
@@ -34,7 +34,7 @@ public class AABBCollider extends Collider {
     }
 
     @Override
-    public boolean intersectsWith(AABBCollider other) {
+    public boolean intersectsWith(CubeCollider other) {
 
         return false;
     }

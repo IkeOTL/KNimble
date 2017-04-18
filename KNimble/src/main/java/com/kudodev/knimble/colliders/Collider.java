@@ -31,8 +31,8 @@ public abstract class Collider {
     }
 
     public boolean intersectsWith(Collider other) {
-        if (other instanceof AABBCollider) {
-            return intersectsWith((AABBCollider) other);
+        if (other instanceof CubeCollider) {
+            return intersectsWith((CubeCollider) other);
         } else if (other instanceof SphereCollider) {
             return intersectsWith((SphereCollider) other);
         }
@@ -41,5 +41,5 @@ public abstract class Collider {
 
     public abstract boolean intersectsWith(SphereCollider other);
 
-    public abstract boolean intersectsWith(AABBCollider other);
+    public abstract boolean intersectsWith(CubeCollider other);
 }
