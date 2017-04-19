@@ -41,12 +41,12 @@ import static org.lwjgl.opengl.GL20.glVertexAttribPointer;
  *
  * @author IkeOTL
  */
-public class Model {
+public class Mesh {
 
     private int vaoId, iboId, vboId;
     private short numIndices;
 
-    public Model(short numIndices, FloatBuffer verts, ShortBuffer indices) {
+    public Mesh(short numIndices, FloatBuffer verts, ShortBuffer indices) {
         this.numIndices = numIndices;
 
         vaoId = glGenVertexArrays();

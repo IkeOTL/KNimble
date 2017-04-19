@@ -49,7 +49,7 @@ public class ShaderProgram {
 
         link();
 
-        createUniform("projMat");
+        createUniform("projViewMat");
         createUniform("modelMat");
 
     }

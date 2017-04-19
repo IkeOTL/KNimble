@@ -16,6 +16,7 @@
 package com.kudodev.knimble.colliders;
 
 import com.kudodev.knimble.Rigidbody;
+import com.kudodev.knimble.Transform;
 
 /**
  *
@@ -25,9 +26,24 @@ public abstract class Collider {
 
     protected final Rigidbody rigidbody;
 
+    protected final Transform transform;
+
+    public Collider(Transform transform) {
+        rigidbody = null;
+        this.transform = transform;
+    }
+
     public Collider(Rigidbody rigidbody) {
+        this.transform = rigidbody.getTransform();
         this.rigidbody = rigidbody;
-        rigidbody.setCollider(this);
+    }
+
+    public Rigidbody getRigidbody() {
+        return rigidbody;
+    }
+
+    public Transform getTransform() {
+        return transform;
     }
 
     public boolean intersectsWith(Collider other) {

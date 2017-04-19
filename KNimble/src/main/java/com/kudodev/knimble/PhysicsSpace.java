@@ -15,6 +15,7 @@
  */
 package com.kudodev.knimble;
 
+import com.kudodev.knimble.colliders.Collider;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -25,24 +26,38 @@ import java.util.List;
 public class PhysicsSpace {
 
     private List<Rigidbody> simpleBodies = new ArrayList<>();
-    private List<Rigidbody> colliderBodies = new ArrayList<>();
+    private List<Collider> colliders = new ArrayList<>();
 
     public void tick(float delta) {
         for (Rigidbody r : simpleBodies) {
             r.integrate(delta);
         }
 
-        for (int i = 0; i < colliderBodies.size(); i++) {
-            for (int j = i + 1; j < colliderBodies.size(); j++) {
-                Rigidbody r1 = colliderBodies.get(i);
-                Rigidbody r2 = colliderBodies.get(j);
-                if (!r1.getCollider().intersectsWith(r2.getCollider())) {
+        for (int i = 0; i < colliders.size(); i++) {
+            for (int j = i + 1; j < colliders.size(); j++) {
+                Collider c1 = colliders.get(i);
+                Collider c2 = colliders.get(j);
+                if (!c1.intersectsWith(c2)) {
                     continue;
                 }
+
+                Rigidbody r1 = c1.getRigidbody();
+                Rigidbody r2 = c2.getRigidbody();
+                if (r1 == null || r2 == null) {
+                    continue;
+                }
+
                 r1.setVelocity(0, 0, 0);
                 r2.setVelocity(0, 0, 0);
             }
         }
     }
 
+    public List<Collider> getColliders() {
+        return colliders;
+    }
+
+    public void addRigidbody(Rigidbody r) {
+
+    }
 }

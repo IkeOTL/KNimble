@@ -16,12 +16,18 @@
 package com.kudodev.knimble.demo;
 
 import com.kudodev.knimble.PhysicsSpace;
-import com.kudodev.knimble.demo.utils.Model;
+import com.kudodev.knimble.Rigidbody;
+import com.kudodev.knimble.colliders.Collider;
+import com.kudodev.knimble.colliders.CubeCollider;
+import com.kudodev.knimble.colliders.SphereCollider;
+import com.kudodev.knimble.demo.utils.Camera;
+import com.kudodev.knimble.demo.utils.Mesh;
 import com.kudodev.knimble.demo.utils.ShaderProgram;
 import org.lwjgl.glfw.*;
 import org.lwjgl.opengl.*;
 import org.lwjgl.system.*;
 import java.nio.*;
+import java.util.List;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import static org.lwjgl.glfw.Callbacks.*;
@@ -52,7 +58,6 @@ public class RenderLoop {
 
     private final String title;
     private final PhysicsSpace physicsSpace;
-    private ShaderProgram shaderProgram;
 
     public RenderLoop(String title, PhysicsSpace physicsSpace) {
         this.title = title;
@@ -60,21 +65,23 @@ public class RenderLoop {
     }
 
     private void loop() throws Exception {
-        shaderProgram = new ShaderProgram();
+        ShaderProgram shaderProgram = new ShaderProgram();
+        Camera camera = new Camera();
 
-        Model sphereModel = createSphere(2);
+        Mesh sphereModel = createSphere(2);
 
         float aspectRatio = (float) windowWidth / windowHeight;
         Matrix4f projMat = new Matrix4f().perspective(FOV, aspectRatio, Z_NEAR, Z_FAR);
-        Vector3f position = new Vector3f(0, 0, -5);
-        Vector3f rotation = new Vector3f(0, 0, 0);
-        Vector3f scale = new Vector3f(1, 1, 1);
-        Matrix4f modelMat = new Matrix4f().translate(position).
-                rotateX((float) Math.toRadians(rotation.x)).
-                rotateY((float) Math.toRadians(rotation.y)).
-                rotateZ((float) Math.toRadians(rotation.z)).
-                scale(scale);
-        
+
+        Matrix4f viewMat = new Matrix4f();
+        Matrix4f projViewMat = new Matrix4f();
+
+        Rigidbody r1 = new Rigidbody();
+        Collider c1 = new SphereCollider(r1, 1);
+        Rigidbody r2 = new Rigidbody();
+        Collider c2 = new SphereCollider(r2, 1);
+        physicsSpace.addRigidbody(r1);
+
         lastFrame = System.nanoTime();
         float delta;
         long newTime;
@@ -88,14 +95,17 @@ public class RenderLoop {
             physicsSpace.tick(delta);
 
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-            
+
             shaderProgram.bind();
 
-            shaderProgram.setUniform("modelMat", modelMat);
-            shaderProgram.setUniform("projMat", projMat);
+            camera.getViewMatrix(viewMat);
+            shaderProgram.setUniform("projViewMat", projMat.mul(viewMat, projViewMat));
 
-            sphereModel.render();
-
+            List<Collider> colliders = physicsSpace.getColliders();
+            for (Collider r : colliders) {
+                shaderProgram.setUniform("modelMat", r.getTransform().getTransMatrix());
+                sphereModel.render();
+            }
             shaderProgram.unbind();
 
             // render here
@@ -105,14 +115,14 @@ public class RenderLoop {
         sphereModel.dispose();
     }
 
-    private Model createSphere(int level) {
+    private Mesh createSphere(int level) {
         ParShapesMesh parShape = ParShapes.par_shapes_create_subdivided_sphere(level);
 
         short numIndices = (short) (parShape.ntriangles() * 3);
         FloatBuffer verts = parShape.points(parShape.npoints() * 3);
         ShortBuffer indices = parShape.triangles(numIndices);
 
-        Model m = new Model(numIndices, verts, indices);
+        Mesh m = new Mesh(numIndices, verts, indices);
 
         ParShapes.par_shapes_free_mesh(parShape);
 

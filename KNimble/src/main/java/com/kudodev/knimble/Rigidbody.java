@@ -15,7 +15,6 @@
  */
 package com.kudodev.knimble;
 
-import com.kudodev.knimble.colliders.Collider;
 import org.joml.Vector3f;
 
 /**
@@ -24,34 +23,39 @@ import org.joml.Vector3f;
  */
 public class Rigidbody {
 
-    private Collider collider = null;
+    private final Transform transform;
 
     private Vector3f velocity = new Vector3f(0);
-    private Vector3f position = new Vector3f(0);
-    
+
+    public Rigidbody() {
+        this.transform = new Transform();
+    }
+
+    public Rigidbody(Transform transform) {
+        this.transform = transform;
+    }
 
     public void integrate(float delta) {
-        position.fma(delta, velocity);
+        transform.position.fma(delta, velocity);
+        transform.setDirty();
     }
 
-    public Collider getCollider() {
-        return collider;
-    }
-
-    public void setCollider(Collider collider) {
-        this.collider = collider;
+    public Transform getTransform() {
+        return transform;
     }
 
     public Vector3f getPosition() {
-        return position;
+        return transform.position;
     }
 
     public void setPosition(Vector3f position) {
-        this.position = position;
+        transform.position.set(position);
+        transform.setDirty();
     }
 
     public void setPosition(float x, float y, float z) {
-        this.position.set(x, y, z);
+        transform.position.set(x, y, z);
+        transform.setDirty();
     }
 
     // should return new vec3?
