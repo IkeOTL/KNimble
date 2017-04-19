@@ -27,6 +27,7 @@ import org.lwjgl.glfw.*;
 import org.lwjgl.opengl.*;
 import org.lwjgl.system.*;
 import java.nio.*;
+import java.util.ArrayList;
 import java.util.List;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
@@ -76,11 +77,21 @@ public class RenderLoop {
         Matrix4f viewMat = new Matrix4f();
         Matrix4f projViewMat = new Matrix4f();
 
+        List<Collider> colliders = new ArrayList<>();
+
         Rigidbody r1 = new Rigidbody();
         Collider c1 = new SphereCollider(r1, 1);
+        colliders.add(c1);
+        r1.setPosition(-2, 0, -5);
+        r1.setVelocity(.5f, 0, 0);
+        physicsSpace.addBody(r1, c1);
+        
         Rigidbody r2 = new Rigidbody();
         Collider c2 = new SphereCollider(r2, 1);
-        physicsSpace.addRigidbody(r1);
+        colliders.add(c2);
+        r2.setPosition(2, 0, -5);
+        r2.setVelocity(-.5f, 0, 0);
+        physicsSpace.addBody(r2, c2);
 
         lastFrame = System.nanoTime();
         float delta;
@@ -101,11 +112,11 @@ public class RenderLoop {
             camera.getViewMatrix(viewMat);
             shaderProgram.setUniform("projViewMat", projMat.mul(viewMat, projViewMat));
 
-            List<Collider> colliders = physicsSpace.getColliders();
             for (Collider r : colliders) {
                 shaderProgram.setUniform("modelMat", r.getTransform().getTransMatrix());
                 sphereModel.render();
             }
+
             shaderProgram.unbind();
 
             // render here

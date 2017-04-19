@@ -16,6 +16,7 @@
 package com.kudodev.knimble;
 
 import com.kudodev.knimble.colliders.Collider;
+import com.kudodev.knimble.contact.ContactResolver;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -25,11 +26,13 @@ import java.util.List;
  */
 public class PhysicsSpace {
 
-    private List<Rigidbody> simpleBodies = new ArrayList<>();
+    private List<Rigidbody> rigidbodies = new ArrayList<>();
     private List<Collider> colliders = new ArrayList<>();
 
+    private ContactResolver contactResolver = new ContactResolver();
+
     public void tick(float delta) {
-        for (Rigidbody r : simpleBodies) {
+        for (Rigidbody r : rigidbodies) {
             r.integrate(delta);
         }
 
@@ -51,13 +54,20 @@ public class PhysicsSpace {
                 r2.setVelocity(0, 0, 0);
             }
         }
+
+        // contactResolver
     }
 
-    public List<Collider> getColliders() {
-        return colliders;
+    public void addBody(Rigidbody r, Collider c) {
+        rigidbodies.add(r);
+        colliders.add(c);
     }
 
     public void addRigidbody(Rigidbody r) {
+        rigidbodies.add(r);
+    }
 
+    public void addCollider(Collider c) {
+        colliders.add(c);
     }
 }

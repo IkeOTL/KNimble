@@ -25,6 +25,9 @@ public class Rigidbody {
 
     private final Transform transform;
 
+    private float mass = 0;
+    private float inverseMass = 0;
+
     private Vector3f velocity = new Vector3f(0);
 
     public Rigidbody() {
@@ -70,4 +73,18 @@ public class Rigidbody {
     public void setVelocity(float x, float y, float z) {
         this.velocity.set(x, y, z);
     }
+
+    public void setMass(float mass) {
+        inverseMass = mass > 0 ? 1 / mass : 0;
+        this.mass = mass;
+    }
+
+    public float getMass() {
+        return mass;
+    }
+
+    public float getInverseMass() {
+        return inverseMass;
+    }
+
 }
