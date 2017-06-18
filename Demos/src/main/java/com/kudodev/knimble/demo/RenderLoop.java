@@ -16,21 +16,16 @@
 package com.kudodev.knimble.demo;
 
 import com.kudodev.knimble.PhysicsSpace;
-import com.kudodev.knimble.Rigidbody;
-import com.kudodev.knimble.colliders.Collider;
-import com.kudodev.knimble.colliders.CubeCollider;
-import com.kudodev.knimble.colliders.SphereCollider;
 import com.kudodev.knimble.demo.utils.Camera;
 import com.kudodev.knimble.demo.utils.Mesh;
 import com.kudodev.knimble.demo.utils.ShaderProgram;
+import com.kudodev.knimble.demo.utils.Shape;
 import org.lwjgl.glfw.*;
 import org.lwjgl.opengl.*;
 import org.lwjgl.system.*;
 import java.nio.*;
-import java.util.ArrayList;
 import java.util.List;
 import org.joml.Matrix4f;
-import org.joml.Vector3f;
 import static org.lwjgl.glfw.Callbacks.*;
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL11.*;
@@ -43,7 +38,7 @@ import org.lwjgl.util.par.ParShapesMesh;
  *
  * @author IkeOTL
  */
-public class RenderLoop {
+public abstract class RenderLoop {
 
     // The window handle
     private long window;
@@ -65,11 +60,11 @@ public class RenderLoop {
         this.physicsSpace = physicsSpace;
     }
 
+    protected abstract List<Shape> initShapes(PhysicsSpace physicsSpace);
+
     private void loop() throws Exception {
         ShaderProgram shaderProgram = new ShaderProgram();
         Camera camera = new Camera();
-
-        Mesh sphereModel = createSphere(2);
 
         float aspectRatio = (float) windowWidth / windowHeight;
         Matrix4f projMat = new Matrix4f().perspective(FOV, aspectRatio, Z_NEAR, Z_FAR);
@@ -77,21 +72,7 @@ public class RenderLoop {
         Matrix4f viewMat = new Matrix4f();
         Matrix4f projViewMat = new Matrix4f();
 
-        List<Collider> colliders = new ArrayList<>();
-
-        Rigidbody r1 = new Rigidbody();
-        Collider c1 = new SphereCollider(r1, 1);
-        colliders.add(c1);
-        r1.setPosition(-2, 0, -5);
-        r1.setVelocity(.5f, 0, 0);
-        physicsSpace.addBody(r1, c1);
-        
-        Rigidbody r2 = new Rigidbody();
-        Collider c2 = new SphereCollider(r2, 1);
-        colliders.add(c2);
-        r2.setPosition(2, 0, -5);
-        r2.setVelocity(-.5f, 0, 0);
-        physicsSpace.addBody(r2, c2);
+        List<Shape> shapes = initShapes(physicsSpace);
 
         lastFrame = System.nanoTime();
         float delta;
@@ -112,9 +93,9 @@ public class RenderLoop {
             camera.getViewMatrix(viewMat);
             shaderProgram.setUniform("projViewMat", projMat.mul(viewMat, projViewMat));
 
-            for (Collider r : colliders) {
-                shaderProgram.setUniform("modelMat", r.getTransform().getTransMatrix());
-                sphereModel.render();
+            for (Shape r : shapes) {
+                shaderProgram.setUniform("modelMat", r.getCollider().getTransform().getTransMatrix());
+                r.getMesh().render();
             }
 
             shaderProgram.unbind();
@@ -122,8 +103,6 @@ public class RenderLoop {
             // render here
             glfwSwapBuffers(window);
         }
-
-        sphereModel.dispose();
     }
 
     private Mesh createSphere(int level) {

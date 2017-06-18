@@ -33,10 +33,9 @@ public class SphereCollider extends Collider {
 
     @Override
     public boolean intersectsWith(SphereCollider other) {
-        Vector3f thisPos = rigidbody.getPosition();
-        Vector3f otherPos = other.rigidbody.getPosition();
+        Vector3f thisPos = transform.getWorldPosition();
+        Vector3f otherPos = other.transform.getWorldPosition();
         float radSum = radius + other.radius;
-
         return thisPos.distanceSquared(otherPos) - (radSum * radSum) <= 0;
     }
 

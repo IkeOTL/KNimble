@@ -54,7 +54,6 @@ public class PhysicsSpace {
                 r2.setVelocity(0, 0, 0);
             }
         }
-
         // contactResolver
     }
 

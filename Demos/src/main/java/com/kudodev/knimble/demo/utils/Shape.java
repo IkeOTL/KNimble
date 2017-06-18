@@ -13,28 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.kudodev.knimble.demo;
+package com.kudodev.knimble.demo.utils;
 
-import com.kudodev.knimble.Rigidbody;
-import com.kudodev.knimble.colliders.SphereCollider;
-import static org.lwjgl.system.MemoryUtil.NULL;
-import org.lwjgl.util.par.ParShapesMesh;
+import com.kudodev.knimble.colliders.Collider;
 
 /**
  *
  * @author IkeOTL
  */
-public class Test {
+public class Shape {
 
-    public static void main(String[] args) {
-        Rigidbody r1 = new Rigidbody();
-        r1.setPosition(0, 0, 0);
-        SphereCollider a = new SphereCollider(r1, 10);
+    protected final Mesh mesh;
+    protected final Collider collider;
 
-        Rigidbody r2 = new Rigidbody();
-        r2.setPosition(20f, 0, 0);
-        SphereCollider b = new SphereCollider(r2, 10);
-        ParShapesMesh.create(NULL);
-        System.out.println(a.intersectsWith(b));
+    public Shape(Mesh mesh, Collider collider) {
+        this.mesh = mesh;
+        this.collider = collider;
     }
+
+    public Mesh getMesh() {
+        return mesh;
+    }
+
+    public Collider getCollider() {
+        return collider;
+    }
+
 }
