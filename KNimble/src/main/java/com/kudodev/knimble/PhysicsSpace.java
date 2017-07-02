@@ -16,6 +16,7 @@
 package com.kudodev.knimble;
 
 import com.kudodev.knimble.colliders.Collider;
+import com.kudodev.knimble.contact.Contact;
 import com.kudodev.knimble.contact.ContactResolver;
 import java.util.ArrayList;
 import java.util.List;
@@ -38,20 +39,22 @@ public class PhysicsSpace {
 
         for (int i = 0; i < colliders.size(); i++) {
             for (int j = i + 1; j < colliders.size(); j++) {
-                Collider c1 = colliders.get(i);
-                Collider c2 = colliders.get(j);
-                if (!c1.intersectsWith(c2)) {
+                Collider c0 = colliders.get(i);
+                Collider c1 = colliders.get(j);
+
+                Contact contact = c0.intersectsWith(c1);
+                if (contact == null) {
                     continue;
                 }
 
+                Rigidbody r0 = c0.getRigidbody();
                 Rigidbody r1 = c1.getRigidbody();
-                Rigidbody r2 = c2.getRigidbody();
-                if (r1 == null || r2 == null) {
+                if (r0 == null || r1 == null) {
                     continue;
                 }
 
+                r0.setVelocity(0, 0, 0);
                 r1.setVelocity(0, 0, 0);
-                r2.setVelocity(0, 0, 0);
             }
         }
         // contactResolver

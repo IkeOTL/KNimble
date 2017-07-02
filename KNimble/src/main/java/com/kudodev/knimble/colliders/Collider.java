@@ -17,6 +17,7 @@ package com.kudodev.knimble.colliders;
 
 import com.kudodev.knimble.Rigidbody;
 import com.kudodev.knimble.Transform;
+import com.kudodev.knimble.contact.Contact;
 
 /**
  *
@@ -24,18 +25,24 @@ import com.kudodev.knimble.Transform;
  */
 public abstract class Collider {
 
-    protected final Rigidbody rigidbody;
+    public enum ColliderType {
+        SPHERE, CUBE
+    };
 
+    protected final ColliderType type;
+    protected final Rigidbody rigidbody;
     protected final Transform transform;
 
-    public Collider(Transform transform) {
+    public Collider(ColliderType type, Transform transform) {
+        this.type = type;
         rigidbody = null;
         this.transform = transform;
     }
 
-    public Collider(Rigidbody rigidbody) {
-        this.transform = rigidbody.getTransform();
+    public Collider(ColliderType type, Rigidbody rigidbody) {
+        this.type = type;
         this.rigidbody = rigidbody;
+        this.transform = rigidbody.getTransform();
     }
 
     public Rigidbody getRigidbody() {
@@ -46,16 +53,16 @@ public abstract class Collider {
         return transform;
     }
 
-    public boolean intersectsWith(Collider other) {
-        if (other instanceof CubeCollider) {
+    public Contact intersectsWith(Collider other) {
+        if (other.type == ColliderType.CUBE) {
             return intersectsWith((CubeCollider) other);
-        } else if (other instanceof SphereCollider) {
+        } else if (other.type == ColliderType.SPHERE) {
             return intersectsWith((SphereCollider) other);
         }
-        return false;
+        return null;
     }
 
-    public abstract boolean intersectsWith(SphereCollider other);
+    public abstract Contact intersectsWith(SphereCollider other);
 
-    public abstract boolean intersectsWith(CubeCollider other);
+    public abstract Contact intersectsWith(CubeCollider other);
 }

@@ -16,6 +16,7 @@
 package com.kudodev.knimble.colliders;
 
 import com.kudodev.knimble.Rigidbody;
+import com.kudodev.knimble.contact.Contact;
 
 /**
  *
@@ -24,19 +25,19 @@ import com.kudodev.knimble.Rigidbody;
 public class CubeCollider extends Collider {
 
     public CubeCollider(Rigidbody rigidbody) {
-        super(rigidbody);
+        super(ColliderType.CUBE, rigidbody);
     }
 
     @Override
-    public boolean intersectsWith(SphereCollider other) {
+    public Contact intersectsWith(SphereCollider other) {
 
-        return false;
+        return null;
     }
 
     @Override
-    public boolean intersectsWith(CubeCollider other) {
+    public Contact intersectsWith(CubeCollider other) {
 
-        return false;
+        return null;
     }
 
 }

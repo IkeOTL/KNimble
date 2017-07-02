@@ -62,6 +62,11 @@ public class DisplayTest extends RenderLoop {
         return shapes;
     }
 
+    @Override
+    protected void update(float delta) {
+
+    }
+
     private Mesh createSphere(int level) {
         ParShapesMesh parShape = ParShapes.par_shapes_create_subdivided_sphere(level);
 

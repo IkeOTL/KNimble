@@ -62,6 +62,8 @@ public abstract class RenderLoop {
 
     protected abstract List<Shape> initShapes(PhysicsSpace physicsSpace);
 
+    protected abstract void update(float delta);
+
     private void loop() throws Exception {
         ShaderProgram shaderProgram = new ShaderProgram();
         Camera camera = new Camera();
@@ -84,6 +86,7 @@ public abstract class RenderLoop {
 
             glfwPollEvents();
 
+            update(delta);
             physicsSpace.tick(delta);
 
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
