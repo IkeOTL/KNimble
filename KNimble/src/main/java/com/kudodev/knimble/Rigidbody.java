@@ -28,7 +28,10 @@ public class Rigidbody {
     private float mass = 0;
     private float inverseMass = 0;
 
-    private Vector3f velocity = new Vector3f(0);
+    private boolean awake = true;
+
+    private Vector3f angularVelocity = new Vector3f(0);
+    private Vector3f linearVelocity = new Vector3f(0);
 
     public Rigidbody() {
         this.transform = new Transform();
@@ -39,7 +42,7 @@ public class Rigidbody {
     }
 
     public void integrate(float delta) {
-        transform.position.fma(delta, velocity);
+        transform.position.fma(delta, linearVelocity);
         transform.setDirty();
     }
 
@@ -47,31 +50,37 @@ public class Rigidbody {
         return transform;
     }
 
-    public Vector3f getPosition() {
-        return transform.position;
-    }
-
-    public void setPosition(Vector3f position) {
-        transform.position.set(position);
-        transform.setDirty();
-    }
-
-    public void setPosition(float x, float y, float z) {
-        transform.position.set(x, y, z);
-        transform.setDirty();
-    }
-
     // should return new vec3?
-    public Vector3f getVelocity() {
-        return velocity;
+    public Vector3f getLinearVelocity() {
+        return linearVelocity;
     }
 
-    public void setVelocity(Vector3f velocity) {
-        this.velocity.set(velocity);
+    public void setLinearVelocity(Vector3f velocity) {
+        this.linearVelocity.set(velocity);
     }
 
-    public void setVelocity(float x, float y, float z) {
-        this.velocity.set(x, y, z);
+    public void setLinearVelocity(float x, float y, float z) {
+        this.linearVelocity.set(x, y, z);
+    }
+
+    public void addLinearVelocity(Vector3f velocity) {
+        this.linearVelocity.add(velocity);
+    }
+
+    public Vector3f getAngularVelocity() {
+        return angularVelocity;
+    }
+
+    public void setAngularVelocity(Vector3f velocity) {
+        this.angularVelocity.set(velocity);
+    }
+
+    public void addAngularVelocity(Vector3f velocity) {
+        this.angularVelocity.add(velocity);
+    }
+
+    public void setAngularVelocity(float x, float y, float z) {
+        this.angularVelocity.set(x, y, z);
     }
 
     public void setMass(float mass) {
@@ -85,6 +94,14 @@ public class Rigidbody {
 
     public float getInverseMass() {
         return inverseMass;
+    }
+
+    public boolean isAwake() {
+        return awake;
+    }
+
+    public void setAwake(boolean awake) {
+        this.awake = awake;
     }
 
 }

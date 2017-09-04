@@ -53,8 +53,8 @@ public class PhysicsSpace {
                     continue;
                 }
 
-                r0.setVelocity(0, 0, 0);
-                r1.setVelocity(0, 0, 0);
+                r0.setLinearVelocity(0, 0, 0);
+                r1.setLinearVelocity(0, 0, 0);
             }
         }
         // contactResolver

@@ -50,14 +50,14 @@ public class DisplayTest extends RenderLoop {
         Collider c1 = new SphereCollider(r1, 1);
         shapes.add(new Shape(sphere, c1));
         r1.setPosition(-2, 0, -5);
-        r1.setVelocity(.5f, 0, 0);
+        r1.setLinearVelocity(.5f, 0, 0);
         physicsSpace.addBody(r1, c1);
 
         Rigidbody r2 = new Rigidbody();
         Collider c2 = new SphereCollider(r2, 1);
         shapes.add(new Shape(sphere, c2));
         r2.setPosition(2, 0, -5);
-        r2.setVelocity(-.5f, 0, 0);
+        r2.setLinearVelocity(-.5f, 0, 0);
         physicsSpace.addBody(r2, c2);
         return shapes;
     }

@@ -1,10 +1,11 @@
 repositories {
+    mavenCentral()
     maven {
         url 'https://oss.sonatype.org/content/repositories/snapshots/'
     }
 }
 
-project.ext.jomlVersion = '1.9.2'
+project.ext.jomlVersion = '1.9.4'
 dependencies {  
     compile "org.joml:joml:${jomlVersion}"
 }
