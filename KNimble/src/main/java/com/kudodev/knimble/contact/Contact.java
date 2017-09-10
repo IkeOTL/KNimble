@@ -117,7 +117,7 @@ public class Contact {
  * this method manually, then call calculateInternals afterwards to
  * make sure the internal data is up to date.
      */
-    void swapBodies() {
+    private void swapBodies() {
         contactNormal.negate();
 
         Rigidbody temp = body[0];
@@ -147,8 +147,7 @@ public class Contact {
 
             // The new Y-axis is at right angles to the new X- and Z- axes
             contactTangent[1].x = contactNormal.y * contactTangent[0].x;
-            contactTangent[1].y = contactNormal.z * contactTangent[0].x
-                    - contactNormal.x * contactTangent[0].z;
+            contactTangent[1].y = contactNormal.z * contactTangent[0].x - contactNormal.x * contactTangent[0].z;
             contactTangent[1].z = -contactNormal.y * contactTangent[0].x;
         } else {
             // Scaling factor to ensure the results are normalised
@@ -182,7 +181,8 @@ public class Contact {
         contactVelocity.mulTranspose(contactToWorld);
 
         // Calculate the ammount of velocity that is due to forces without reactions.
-        Vector3f accVelocity = thisBody.getLastFrameAcceleration() * duration;
+        Vector3f accVelocity = new Vector3f(thisBody.getLastFrameLinearAcceleration());
+        accVelocity.mul(duration);
 
         // Calculate the velocity in contact-coordinates.
         accVelocity = contactToWorld.transformTranspose(accVelocity);
@@ -205,12 +205,17 @@ public class Contact {
         // Calculate the acceleration induced velocity accumulated this frame
         float velocityFromAcc = 0;
 
+        Vector3f tempVec = new Vector3f();
         if (body[0].isAwake()) {
-            velocityFromAcc += body[0].getLastFrameAcceleration() * duration * contactNormal;
+            tempVec.set(body[0].getLastFrameLinearAcceleration());
+            tempVec.mul(duration);
+            velocityFromAcc += tempVec.dot(contactNormal);
         }
 
         if (body[1] != null && body[1].isAwake()) {
-            velocityFromAcc -= body[1].getLastFrameAcceleration() * duration * contactNormal;
+            tempVec.set(body[1].getLastFrameLinearAcceleration());
+            tempVec.mul(duration);
+            velocityFromAcc -= tempVec.dot(contactNormal);
         }
 
         // If the velocity is very slow, limit the restitution
@@ -435,7 +440,7 @@ public class Contact {
         // of the contact normal, due to angular inertia only.
         for (int i = 0; i < 2; i++) {
             if (body[i] != null) {
-                Matrix3f inverseInertiaTensor;
+                Matrix3f inverseInertiaTensor = new Matrix3f();
                 body[i].getInverseInertiaTensorWorld(inverseInertiaTensor);
 
                 // Use the same procedure as for calculating frictionless
@@ -496,7 +501,7 @@ public class Contact {
                     // Work out the direction we'd like to rotate in.
                     Vector3f targetAngularDirection = new Vector3f(relativeContactPosition[i]).cross(contactNormal);
 
-                    Matrix3f inverseInertiaTensor;
+                    Matrix3f inverseInertiaTensor = new Matrix3f();
                     body[i].getInverseInertiaTensorWorld(inverseInertiaTensor);
 
                     // Work out the direction we'd need to rotate to achieve that
@@ -511,16 +516,15 @@ public class Contact {
 
                 // Now we can start to apply the values we've calculated.
                 // Apply the linear movement
-                Vector3f pos;
-                body[i].getPosition( & pos);
-                pos.addScaledVector(contactNormal, linearMove[i]);
-                body[i].setPosition(pos);
+                Vector3f pos = body[i].getTransform().position;
+                pos.fma(linearMove[i], contactNormal);
 
                 // And the change in orientation
-                Quaternionf q;
-                body[i].getOrientation(q);
-                q.addScaledVector(angularChange[i], ((float) 1.0));
-                body[i].setOrientation(q);
+                Quaternionf q = body[i].getTransform().rotation;
+                q.rotateLocal(angularChange[i].x, angularChange[i].y, angularChange[i].z);
+
+                // set transform as dirty
+                body[i].getTransform().setDirty();
 
                 // We need to calculate the derived data for any body that is
                 // asleep, so that the changes are reflected in the object's
@@ -528,7 +532,7 @@ public class Contact {
                 // of the object, and the next collision detection round will
                 // have the same penetration.
                 if (!body[i].isAwake()) {
-                    body[i].calculateDerivedData();
+                    //  body[i].calculateDerivedData();
                 }
             }
         }

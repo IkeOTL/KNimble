@@ -70,6 +70,7 @@ public abstract class RenderLoop {
 
         float aspectRatio = (float) windowWidth / windowHeight;
         Matrix4f projMat = new Matrix4f().perspective(FOV, aspectRatio, Z_NEAR, Z_FAR);
+//        Matrix4f projMat = new Matrix4f().ortho(0, windowWidth, windowHeight, 0, -1, 1);
 
         Matrix4f viewMat = new Matrix4f();
         Matrix4f projViewMat = new Matrix4f();
@@ -106,20 +107,6 @@ public abstract class RenderLoop {
             // render here
             glfwSwapBuffers(window);
         }
-    }
-
-    private Mesh createSphere(int level) {
-        ParShapesMesh parShape = ParShapes.par_shapes_create_subdivided_sphere(level);
-
-        short numIndices = (short) (parShape.ntriangles() * 3);
-        FloatBuffer verts = parShape.points(parShape.npoints() * 3);
-        ShortBuffer indices = parShape.triangles(numIndices);
-
-        Mesh m = new Mesh(numIndices, verts, indices);
-
-        ParShapes.par_shapes_free_mesh(parShape);
-
-        return m;
     }
 
     public void start() throws Exception {

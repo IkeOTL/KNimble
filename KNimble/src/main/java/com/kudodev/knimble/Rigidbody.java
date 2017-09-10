@@ -15,6 +15,7 @@
  */
 package com.kudodev.knimble;
 
+import org.joml.Matrix3f;
 import org.joml.Vector3f;
 
 /**
@@ -27,11 +28,21 @@ public class Rigidbody {
 
     private float mass = 0;
     private float inverseMass = 0;
+    private float linearDamping = 0.99f;
+    private float angularDamping = 0.8f;
 
     private boolean awake = true;
 
-    private Vector3f angularVelocity = new Vector3f(0);
-    private Vector3f linearVelocity = new Vector3f(0);
+    private final Vector3f acceleration = new Vector3f(0);
+    private final Vector3f lastFrameLinearAcceleration = new Vector3f(0);
+
+    private final Vector3f angularVelocity = new Vector3f(0);
+    private final Vector3f linearVelocity = new Vector3f(0);
+
+    private final Vector3f angularForces = new Vector3f(0);
+    private final Vector3f linearForces = new Vector3f(0);
+
+    private final Matrix3f inverseInertiaTensorWorld = new Matrix3f();
 
     public Rigidbody() {
         this.transform = new Transform();
@@ -42,12 +53,47 @@ public class Rigidbody {
     }
 
     public void integrate(float delta) {
+        if (!awake) {
+            return;
+        }
+
+        // update linear velocity
+        lastFrameLinearAcceleration.set(acceleration);
+        lastFrameLinearAcceleration.fma(inverseMass, linearForces);
+        linearVelocity.fma(delta, lastFrameLinearAcceleration);
+        linearForces.set(0);
+
+        // update angular velocity
+        inverseInertiaTensorWorld.transform(angularForces);
+        angularVelocity.fma(delta, angularForces);
+        angularForces.set(0);
+
+        // apply damping
+        linearVelocity.mul((float) Math.pow(linearDamping, delta));
+        angularVelocity.mul((float) Math.pow(angularDamping, delta));
+
+        // apply to transform
         transform.position.fma(delta, linearVelocity);
+        transform.rotation.integrate(delta, angularVelocity.x, angularVelocity.y, angularVelocity.z);
         transform.setDirty();
+
+        // make sleep
     }
 
     public Transform getTransform() {
         return transform;
+    }
+
+    public Vector3f getForces() {
+        return linearForces;
+    }
+
+    public Vector3f getAcceleration() {
+        return acceleration;
+    }
+
+    public Vector3f getLastFrameLinearAcceleration() {
+        return lastFrameLinearAcceleration;
     }
 
     // should return new vec3?
@@ -102,6 +148,10 @@ public class Rigidbody {
 
     public void setAwake(boolean awake) {
         this.awake = awake;
+    }
+
+    public void getInverseInertiaTensorWorld(Matrix3f matrix3f) {
+        // need to decide on how to go about this.
     }
 
 }

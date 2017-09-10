@@ -16,7 +16,7 @@
 package com.kudodev.knimble.colliders;
 
 import com.kudodev.knimble.Rigidbody;
-import com.kudodev.knimble.contact.Contact;
+import org.joml.Intersectionf;
 import org.joml.Vector3f;
 
 /**
@@ -25,7 +25,11 @@ import org.joml.Vector3f;
  */
 public class SphereCollider extends Collider {
 
-    protected float radius;
+    protected float radius = .5f;
+
+    public SphereCollider(Rigidbody rigidbody) {
+        this(rigidbody, 0.5f);
+    }
 
     public SphereCollider(Rigidbody rigidbody, float radius) {
         super(ColliderType.SPHERE, rigidbody);
@@ -33,17 +37,16 @@ public class SphereCollider extends Collider {
     }
 
     @Override
-    public Contact intersectsWith(SphereCollider other) {
-        Vector3f thisPos = transform.getWorldPosition();
-        Vector3f otherPos = other.transform.getWorldPosition();
-        float radSum = radius + other.radius;
-        return thisPos.distanceSquared(otherPos) - (radSum * radSum) <= 0;
+    public boolean intersectsWith(SphereCollider other) {
+        return Intersectionf.testSphereSphere(
+                transform.getWorldPosition(), radius,
+                other.transform.getWorldPosition(), other.radius);
     }
 
     @Override
-    public Contact intersectsWith(CubeCollider other) {
+    public boolean intersectsWith(BoxCollider other) {
 
-        return null;
+        return false;
     }
 
 }

@@ -42,8 +42,7 @@ public class PhysicsSpace {
                 Collider c0 = colliders.get(i);
                 Collider c1 = colliders.get(j);
 
-                Contact contact = c0.intersectsWith(c1);
-                if (contact == null) {
+                if (!c0.intersectsWith(c1)) {
                     continue;
                 }
 

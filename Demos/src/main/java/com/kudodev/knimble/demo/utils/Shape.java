@@ -38,5 +38,4 @@ public class Shape {
     public Collider getCollider() {
         return collider;
     }
-
 }

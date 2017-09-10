@@ -42,7 +42,15 @@ public abstract class Collider {
     public Collider(ColliderType type, Rigidbody rigidbody) {
         this.type = type;
         this.rigidbody = rigidbody;
-        this.transform = rigidbody.getTransform();
+        if (rigidbody != null) {
+            this.transform = rigidbody.getTransform();
+        } else {
+            this.transform = new Transform();
+        }
+    }
+
+    public Collider(ColliderType type) {
+        this(type, new Transform());
     }
 
     public Rigidbody getRigidbody() {
@@ -53,16 +61,16 @@ public abstract class Collider {
         return transform;
     }
 
-    public Contact intersectsWith(Collider other) {
+    public boolean intersectsWith(Collider other) {
         if (other.type == ColliderType.CUBE) {
-            return intersectsWith((CubeCollider) other);
+            return intersectsWith((BoxCollider) other);
         } else if (other.type == ColliderType.SPHERE) {
             return intersectsWith((SphereCollider) other);
         }
-        return null;
+        return false;
     }
 
-    public abstract Contact intersectsWith(SphereCollider other);
+    public abstract boolean intersectsWith(SphereCollider other);
 
-    public abstract Contact intersectsWith(CubeCollider other);
+    public abstract boolean intersectsWith(BoxCollider other);
 }

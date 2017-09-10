@@ -21,6 +21,7 @@ import com.kudodev.knimble.colliders.Collider;
 import com.kudodev.knimble.colliders.SphereCollider;
 import com.kudodev.knimble.demo.utils.Mesh;
 import com.kudodev.knimble.demo.utils.Shape;
+import com.kudodev.knimble.demo.utils.ShapeUtils;
 import java.nio.FloatBuffer;
 import java.nio.ShortBuffer;
 import java.util.ArrayList;
@@ -32,52 +33,38 @@ import org.lwjgl.util.par.ParShapesMesh;
  *
  * @author IkeOTL
  */
-public class DisplayTest extends RenderLoop {
+public class TestSpheres0 extends RenderLoop {
 
-    public DisplayTest(String title, PhysicsSpace physicsSpace) {
+    public TestSpheres0(String title, PhysicsSpace physicsSpace) {
         super(title, physicsSpace);
     }
 
     public static void main(String[] args) throws Exception {
-        new DisplayTest("Display Test", new PhysicsSpace()).start();
+        new TestSpheres0("Display Test", new PhysicsSpace()).start();
     }
 
     @Override
     protected List<Shape> initShapes(PhysicsSpace physicsSpace) {
-        Mesh sphere = createSphere(2);
+        Mesh sphere = ShapeUtils.createSphereMesh(2);
         List<Shape> shapes = new ArrayList<>();
         Rigidbody r1 = new Rigidbody();
-        Collider c1 = new SphereCollider(r1, 1);
+        Collider c1 = new SphereCollider(r1);
         shapes.add(new Shape(sphere, c1));
-        r1.setPosition(-2, 0, -5);
-        r1.setLinearVelocity(.5f, 0, 0);
+        r1.getTransform().setPosition(0, 0, -5);
+//        r1.setLinearVelocity(.5f, 0, 0);
         physicsSpace.addBody(r1, c1);
 
         Rigidbody r2 = new Rigidbody();
-        Collider c2 = new SphereCollider(r2, 1);
+        Collider c2 = new SphereCollider(r2);
         shapes.add(new Shape(sphere, c2));
-        r2.setPosition(2, 0, -5);
+        r2.getTransform().setPosition(2, 0, -5);
         r2.setLinearVelocity(-.5f, 0, 0);
-        physicsSpace.addBody(r2, c2);
+//        physicsSpace.addBody(r2, c2);
         return shapes;
-    }
+    }   
 
     @Override
     protected void update(float delta) {
 
-    }
-
-    private Mesh createSphere(int level) {
-        ParShapesMesh parShape = ParShapes.par_shapes_create_subdivided_sphere(level);
-
-        short numIndices = (short) (parShape.ntriangles() * 3);
-        FloatBuffer verts = parShape.points(parShape.npoints() * 3);
-        ShortBuffer indices = parShape.triangles(numIndices);
-
-        Mesh m = new Mesh(numIndices, verts, indices);
-
-        ParShapes.par_shapes_free_mesh(parShape);
-
-        return m;
     }
 }
