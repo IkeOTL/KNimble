@@ -51,7 +51,7 @@ public class TestSpheres0 extends RenderLoop {
         Collider c1 = new SphereCollider(r1);
         shapes.add(new Shape(sphere, c1));
         r1.getTransform().setPosition(0, 0, -5);
-//        r1.setLinearVelocity(.5f, 0, 0);
+        r1.setLinearVelocity(.5f, 0, 0);
         physicsSpace.addBody(r1, c1);
 
         Rigidbody r2 = new Rigidbody();
@@ -59,7 +59,7 @@ public class TestSpheres0 extends RenderLoop {
         shapes.add(new Shape(sphere, c2));
         r2.getTransform().setPosition(2, 0, -5);
         r2.setLinearVelocity(-.5f, 0, 0);
-//        physicsSpace.addBody(r2, c2);
+        physicsSpace.addBody(r2, c2);
         return shapes;
     }   
 

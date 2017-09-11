@@ -18,6 +18,7 @@ package com.kudodev.knimble.colliders;
 import com.kudodev.knimble.Rigidbody;
 import com.kudodev.knimble.Transform;
 import com.kudodev.knimble.contact.Contact;
+import com.kudodev.knimble.contact.ContactCache;
 
 /**
  *
@@ -70,7 +71,19 @@ public abstract class Collider {
         return false;
     }
 
+    public void createCollision(Collider other, ContactCache contactCache) {
+        if (other.type == ColliderType.CUBE) {
+            createCollision((BoxCollider) other, contactCache);
+        } else if (other.type == ColliderType.SPHERE) {
+            createCollision((SphereCollider) other, contactCache);
+        }
+    }
+
     public abstract boolean intersectsWith(SphereCollider other);
 
     public abstract boolean intersectsWith(BoxCollider other);
+
+    public abstract void createCollision(SphereCollider other, ContactCache contactCache);
+
+    public abstract void createCollision(BoxCollider other, ContactCache contactCache);
 }

@@ -16,6 +16,7 @@
 package com.kudodev.knimble.colliders;
 
 import com.kudodev.knimble.Rigidbody;
+import com.kudodev.knimble.contact.ContactCache;
 import org.joml.Intersectionf;
 import org.joml.Vector3f;
 
@@ -47,6 +48,16 @@ public class SphereCollider extends Collider {
     public boolean intersectsWith(BoxCollider other) {
 
         return false;
+    }
+
+    @Override
+    public void createCollision(SphereCollider other, ContactCache contactCache) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public void createCollision(BoxCollider other, ContactCache contactCache) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
 }

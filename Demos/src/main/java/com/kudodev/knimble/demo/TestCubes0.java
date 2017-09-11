@@ -19,17 +19,12 @@ import com.kudodev.knimble.PhysicsSpace;
 import com.kudodev.knimble.Rigidbody;
 import com.kudodev.knimble.colliders.BoxCollider;
 import com.kudodev.knimble.colliders.Collider;
-import com.kudodev.knimble.colliders.SphereCollider;
 import com.kudodev.knimble.demo.utils.Mesh;
 import com.kudodev.knimble.demo.utils.Shape;
 import com.kudodev.knimble.demo.utils.ShapeUtils;
-import java.nio.FloatBuffer;
-import java.nio.ShortBuffer;
 import java.util.ArrayList;
 import java.util.List;
 import org.joml.Vector3f;
-import org.lwjgl.util.par.ParShapes;
-import org.lwjgl.util.par.ParShapesMesh;
 
 /**
  *
@@ -53,18 +48,18 @@ public class TestCubes0 extends RenderLoop {
         Collider c1 = new BoxCollider(r1);
         shapes.add(new Shape(cube, c1));
 //        r1.getTransform().setPosition(0, 0, -5);
-        r1.getTransform().setPosition(-0, 0, -5);
-//        r1.setLinearVelocity(.5f, 0, 0);
+        r1.getTransform().setPosition(-2, 0, -5);
+        r1.setLinearVelocity(.5f, 0, 0);
         r1.getTransform().rotate((float) Math.toRadians(45), new Vector3f(0, 1, 0));
-        r1.getTransform().rotate((float) Math.toRadians(45), new Vector3f(0, 0, 1));
+//        r1.getTransform().rotate((float) Math.toRadians(55), new Vector3f(0, 0, 1));
         physicsSpace.addBody(r1, c1);
 
         Rigidbody r2 = new Rigidbody();
         Collider c2 = new BoxCollider(r2);
         shapes.add(new Shape(cube, c2));
-        r2.getTransform().setPosition(2, 0, -5);
-        r2.setLinearVelocity(-.5f, 0, 0);
-//        r2.getTransform().rotate((float) Math.toRadians(135), new Vector3f(0, 0, 1));
+        r2.getTransform().setPosition(2f, 0, -5);
+//        r2.setLinearVelocity(-.5f, 0, 0);
+//        r2.getTransform().rotate((float) Math.toRadians(-25), new Vector3f(0, 0, 1));
         physicsSpace.addBody(r2, c2);
         return shapes;
     }

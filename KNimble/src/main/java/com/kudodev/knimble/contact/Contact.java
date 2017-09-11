@@ -35,7 +35,7 @@ public class Contact {
     /**
      * Holds the lateral friction coefficient at the contact.
      */
-    float friction;
+    public float friction;
 
     /**
      * Holds the normal restitution coefficient at the contact.
@@ -45,12 +45,12 @@ public class Contact {
     /**
      * Holds the position of the contact in world coordinates.
      */
-    public Vector3f contactPoint;
+    public final Vector3f contactPoint = new Vector3f();
 
     /**
      * Holds the direction of the contact in world coordinates.
      */
-    public Vector3f contactNormal;
+    public final Vector3f contactNormal = new Vector3f();
 
     /**
      * Holds the depth of penetration at the contact point. If both bodies are
@@ -64,13 +64,13 @@ public class Contact {
      * reference to world co-ordinates. The columns of this matrix form an
      * orthonormal set of vectors.
      */
-    protected Matrix3f contactToWorld;
+    protected final Matrix3f contactToWorld = new Matrix3f();
 
     /**
      * Holds the closing velocity at the point of contact. This is set when the
      * calculateInternals function is run.
      */
-    protected Vector3f contactVelocity;
+    protected final Vector3f contactVelocity = new Vector3f();
 
     /**
      * Holds the required change in velocity for this contact to be resolved.
@@ -81,9 +81,9 @@ public class Contact {
      * Holds the world space position of the contact point relative to center of
      * each body. This is set when the calculateInternals function is run.
      */
-    protected Vector3f[] relativeContactPosition = new Vector3f[]{new Vector3f(), new Vector3f()};
+    protected final Vector3f[] relativeContactPosition = {new Vector3f(), new Vector3f()};
 
-    void setBodyData(Rigidbody one, Rigidbody two,
+    public void setBodyData(Rigidbody one, Rigidbody two,
             float friction, float restitution) {
         body[0] = one;
         body[1] = two;
@@ -133,7 +133,7 @@ public class Contact {
  * directionss are set so they are at right angles to it.
      */
     void calculateContactBasis() {
-        Vector3f[] contactTangent = new Vector3f[2];
+        Vector3f[] contactTangent = {new Vector3f(), new Vector3f()};
 
         // Check whether the Z-axis is nearer to the X or Y axis
         if (Math.abs(contactNormal.x) > Math.abs(contactNormal.y)) {
@@ -248,7 +248,7 @@ public class Contact {
         }
 
         // Find the relative velocity of the bodies at the contact point.
-        contactVelocity = calculateLocalVelocity(0, duration);
+        contactVelocity.set(calculateLocalVelocity(0, duration));
         if (body[1] != null) {
             contactVelocity.sub(calculateLocalVelocity(1, duration));
         }

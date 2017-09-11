@@ -71,19 +71,19 @@ public class Transform {
 
     public void setPosition(float x, float y, float z) {
         position.set(x, y, z);
-        worldPosition.set(x, y, z);
+//        worldPosition.set(x, y, z);
         isDirty = true;
     }
 
     public void setScale(float x, float y, float z) {
         scale.set(x, y, z);
-        worldScale.set(x, y, z);
+//        worldScale.set(x, y, z);
         isDirty = true;
     }
 
     public void rotate(float f, Vector3f v) {
         rotation.rotateAxis(f, v);
-        worldRotation.set(rotation);
+//        worldRotation.set(rotation);
         isDirty = true;
     }
 

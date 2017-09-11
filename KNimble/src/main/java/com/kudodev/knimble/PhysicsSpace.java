@@ -17,6 +17,7 @@ package com.kudodev.knimble;
 
 import com.kudodev.knimble.colliders.Collider;
 import com.kudodev.knimble.contact.Contact;
+import com.kudodev.knimble.contact.ContactCache;
 import com.kudodev.knimble.contact.ContactResolver;
 import java.util.ArrayList;
 import java.util.List;
@@ -30,6 +31,7 @@ public class PhysicsSpace {
     private List<Rigidbody> rigidbodies = new ArrayList<>();
     private List<Collider> colliders = new ArrayList<>();
 
+    private ContactCache contactCache = new ContactCache(256);
     private ContactResolver contactResolver = new ContactResolver();
 
     public void tick(float delta) {
@@ -42,9 +44,14 @@ public class PhysicsSpace {
                 Collider c0 = colliders.get(i);
                 Collider c1 = colliders.get(j);
 
-                if (!c0.intersectsWith(c1)) {
+                long l = System.nanoTime();
+                boolean intersects = c0.intersectsWith(c1);
+                System.out.println("elapsed: " + (System.nanoTime() - l) + " nano");
+
+                if (!intersects) {
                     continue;
                 }
+                System.out.println("Intersects!");
 
                 Rigidbody r0 = c0.getRigidbody();
                 Rigidbody r1 = c1.getRigidbody();
@@ -52,11 +59,13 @@ public class PhysicsSpace {
                     continue;
                 }
 
-                r0.setLinearVelocity(0, 0, 0);
-                r1.setLinearVelocity(0, 0, 0);
+                c0.createCollision(c1, contactCache);
             }
         }
+        
         // contactResolver
+        contactResolver.setIterations(contactCache.getContactCount() * 2);
+        contactResolver.resolveContacts(contactCache, delta);
     }
 
     public void addBody(Rigidbody r, Collider c) {
