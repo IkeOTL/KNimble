@@ -16,6 +16,8 @@
 package com.kudodev.knimble.demo.utils;
 
 import com.kudodev.knimble.colliders.Collider;
+import org.joml.Vector3f;
+import org.joml.Vector4f;
 
 /**
  *
@@ -25,6 +27,7 @@ public class Shape {
 
     protected final Mesh mesh;
     protected final Collider collider;
+    protected Vector4f color = new Vector4f(1);
 
     public Shape(Mesh mesh, Collider collider) {
         this.mesh = mesh;
@@ -37,5 +40,9 @@ public class Shape {
 
     public Collider getCollider() {
         return collider;
+    }
+
+    public Vector4f getColor() {
+        return color;
     }
 }

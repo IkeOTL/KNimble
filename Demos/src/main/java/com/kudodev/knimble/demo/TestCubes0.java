@@ -40,32 +40,54 @@ public class TestCubes0 extends RenderLoop {
         new TestCubes0("Display Test", new PhysicsSpace()).start();
     }
 
+    Rigidbody r1;
+
     @Override
     protected List<Shape> initShapes(PhysicsSpace physicsSpace) {
         Mesh cube = ShapeUtils.createCubeMesh();
         List<Shape> shapes = new ArrayList<>();
-        Rigidbody r1 = new Rigidbody();
-        Collider c1 = new BoxCollider(r1);
-        shapes.add(new Shape(cube, c1));
+        Rigidbody r0 = new Rigidbody(1);
+        Collider c0 = new BoxCollider(r0);
+        Shape s0 = new Shape(cube, c0);
+        s0.getColor().set(1, 0, 0, 1);
+        shapes.add(s0);
 //        r1.getTransform().setPosition(0, 0, -5);
-        r1.getTransform().setPosition(-2, 0, -5);
-        r1.setLinearVelocity(.5f, 0, 0);
-        r1.getTransform().rotate((float) Math.toRadians(45), new Vector3f(0, 1, 0));
-//        r1.getTransform().rotate((float) Math.toRadians(55), new Vector3f(0, 0, 1));
+        r0.getTransform().setPosition(-0, 0, -5f);
+        r0.setLinearVelocity(.0f, 0, 0);
+//        r0.setAngularVelocity(0, 0, 10);
+//        r1.addLinearAcceleration(.5f, 0, 0);
+//        r1.getTransform().rotate((float) Math.toRadians(5), new Vector3f(0, 1, 0));
+//        r0.getTransform().rotate((float) Math.toRadians(45), new Vector3f(0, 1, 0));
+        physicsSpace.addBody(r0, c0);
+
+        r1 = new Rigidbody(10);
+        Collider c1 = new BoxCollider(r1);
+        Shape s1 = new Shape(cube, c1);
+        s1.getColor().set(0, 0, 1, 1);
+        shapes.add(s1);
+        r1.getTransform().setPosition(2f, 0, -5);
+        r1.setLinearVelocity(-1f, 0, 0);
+        r1.setAngularVelocity(0, 0, 15);
+        r1.getTransform().rotate((float) Math.toRadians(-90), new Vector3f(0, 1, 0));
+//        r1.getTransform().rotate((float) Math.toRadians(-45), new Vector3f(0, 0, 1));
         physicsSpace.addBody(r1, c1);
 
-        Rigidbody r2 = new Rigidbody();
-        Collider c2 = new BoxCollider(r2);
-        shapes.add(new Shape(cube, c2));
-        r2.getTransform().setPosition(2f, 0, -5);
-//        r2.setLinearVelocity(-.5f, 0, 0);
-//        r2.getTransform().rotate((float) Math.toRadians(-25), new Vector3f(0, 0, 1));
-        physicsSpace.addBody(r2, c2);
+        // idle boxes
+        Collider i0 = new BoxCollider();
+        i0.getTransform().setScale(10, 10, 1);
+        i0.getTransform().setPosition(0, 0, -10);
+//        shapes.add(new Shape(cube, i0));
+
         return shapes;
     }
 
+    float time = 0;
+
     @Override
     protected void update(float delta) {
-
+        time += delta;
+        if (time >= 20) {
+//            r1.getTransform().setPosition(0, 3, -5);
+        }
     }
 }

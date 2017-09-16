@@ -16,7 +16,6 @@
 package com.kudodev.knimble;
 
 import com.kudodev.knimble.colliders.Collider;
-import com.kudodev.knimble.contact.Contact;
 import com.kudodev.knimble.contact.ContactCache;
 import com.kudodev.knimble.contact.ContactResolver;
 import java.util.ArrayList;
@@ -34,38 +33,51 @@ public class PhysicsSpace {
     private ContactCache contactCache = new ContactCache(256);
     private ContactResolver contactResolver = new ContactResolver();
 
+    private float frameAccum = 0;
+    private float stepSize = 1f / 60f;
+
     public void tick(float delta) {
-        for (Rigidbody r : rigidbodies) {
-            r.integrate(delta);
-        }
+        frameAccum += delta;
+//        if (frameAccum > 0.05f) {
+//            frameAccum = 0.05f;
+//        }
 
-        for (int i = 0; i < colliders.size(); i++) {
-            for (int j = i + 1; j < colliders.size(); j++) {
-                Collider c0 = colliders.get(i);
-                Collider c1 = colliders.get(j);
+        while (frameAccum >= stepSize) {
+            frameAccum -= stepSize;
 
-                long l = System.nanoTime();
-                boolean intersects = c0.intersectsWith(c1);
-                System.out.println("elapsed: " + (System.nanoTime() - l) + " nano");
-
-                if (!intersects) {
-                    continue;
-                }
-                System.out.println("Intersects!");
-
-                Rigidbody r0 = c0.getRigidbody();
-                Rigidbody r1 = c1.getRigidbody();
-                if (r0 == null || r1 == null) {
-                    continue;
-                }
-
-                c0.createCollision(c1, contactCache);
+            for (int i = 0; i < rigidbodies.size(); i++) {
+                rigidbodies.get(i).integrate(stepSize);
             }
+
+            outer:
+            for (int i = 0; i < colliders.size(); i++) {
+                for (int j = i + 1; j < colliders.size(); j++) {
+
+                    Collider c0 = colliders.get(i);
+                    Collider c1 = colliders.get(j);
+
+                    boolean intersects = c0.intersectsWith(c1);
+                    if (!intersects) {
+                        continue;
+                    }
+
+                    if (c0.getRigidbody() == null || c1.getRigidbody() == null) {
+                        continue;
+                    }
+
+                    if (!contactCache.hasMoreContacts()) {
+                        System.err.println("NO MORE CONTACTS");
+                        break outer;
+                    }
+
+                    c0.createCollision(c1, contactCache);
+                }
+            }
+
+            contactResolver.setIterations(contactCache.getContactCount() * 2);
+            contactResolver.resolveContacts(contactCache, stepSize);
+            contactCache.reset();
         }
-        
-        // contactResolver
-        contactResolver.setIterations(contactCache.getContactCount() * 2);
-        contactResolver.resolveContacts(contactCache, delta);
     }
 
     public void addBody(Rigidbody r, Collider c) {

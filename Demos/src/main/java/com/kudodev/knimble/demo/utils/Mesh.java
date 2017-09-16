@@ -17,9 +17,11 @@ package com.kudodev.knimble.demo.utils;
 
 import java.nio.FloatBuffer;
 import java.nio.ShortBuffer;
+import org.lwjgl.BufferUtils;
 import static org.lwjgl.opengl.ARBVertexArrayObject.glBindVertexArray;
 import static org.lwjgl.opengl.ARBVertexArrayObject.glDeleteVertexArrays;
 import static org.lwjgl.opengl.ARBVertexArrayObject.glGenVertexArrays;
+import org.lwjgl.opengl.GL11;
 import static org.lwjgl.opengl.GL11.GL_FLOAT;
 import static org.lwjgl.opengl.GL11.GL_TRIANGLES;
 import static org.lwjgl.opengl.GL11.GL_UNSIGNED_SHORT;
@@ -43,7 +45,7 @@ public class Mesh {
     private int vaoId, iboId, vboId;
     private short numIndices;
 
-    public Mesh(short numIndices, FloatBuffer verts, ShortBuffer indices) {
+    public Mesh(ShortBuffer indices, short numIndices, FloatBuffer verts) {
         this.numIndices = numIndices;
 
         vaoId = glGenVertexArrays();
@@ -53,10 +55,18 @@ public class Mesh {
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, iboId);
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices, GL_STATIC_DRAW);
 
+        int stride = 6 * Float.BYTES; // vert component size + normals component size
+
+        // upload verts
         vboId = glGenBuffers();
         glBindBuffer(GL_ARRAY_BUFFER, vboId);
         glBufferData(GL_ARRAY_BUFFER, verts, GL_STATIC_DRAW);
-        glVertexAttribPointer(0, 3, GL_FLOAT, false, 0, 0);
+
+        // set positions
+        glVertexAttribPointer(0, 3, GL_FLOAT, false, stride, 0);
+        // set normals
+        glVertexAttribPointer(1, 3, GL_FLOAT, false, stride, 12);
+
         glBindBuffer(GL_ARRAY_BUFFER, 0);
         glBindVertexArray(0);
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);

@@ -87,16 +87,6 @@ public class ContactResolver {
     }
 
     /**
-     * Returns true if the resolver has valid settings and is ready to go.
-     */
-    public boolean isValid() {
-        return (velocityIterations > 0)
-                && (positionIterations > 0)
-                && (positionEpsilon >= 0.0f)
-                && (positionEpsilon >= 0.0f);
-    }
-
-    /**
      * Sets the number of iterations for each resolution stage.
      */
     public void setIterations(int velocityIterations, int positionIterations) {
@@ -150,7 +140,7 @@ public class ContactResolver {
         if (numContacts == 0) {
             return;
         }
-        if (!isValid()) {
+        if (!(velocityIterations > 0 && positionIterations > 0 && positionEpsilon >= 0.0f && positionEpsilon >= 0.0f)) {
             return;
         }
         // Prepare the contacts for processing 
@@ -167,79 +157,20 @@ public class ContactResolver {
     }
 
     /**
-     * Resolves the velocity issues with the given array of constraints, using
-     * the given number of iterations.
-     */
-    private Vector3f[] velocityChange = {new Vector3f(), new Vector3f()};
-    private Vector3f[] rotationChange = {new Vector3f(), new Vector3f()};
-
-    protected void adjustVelocities(Contact[] c, int numContacts, float duration) {
-        // iteratively handle impacts in order of severity.
-        velocityIterationsUsed = 0;
-        Vector3f deltaVel = new Vector3f();
-        while (velocityIterationsUsed < velocityIterations) {
-            // Find contact with maximum magnitude of probable velocity change.
-            float max = velocityEpsilon;
-            int index = numContacts;
-            for (int i = 0; i < numContacts; i++) {
-                if (c[i].desiredDeltaVelocity > max) {
-                    max = c[i].desiredDeltaVelocity;
-                    index = i;
-                }
-            }
-            if (index >= numContacts) {
-                break;
-            }
-            // Match the awake state at the contact
-            c[index].matchAwakeState();
-            // Do the resolution on the contact that came out top.
-            c[index].applyVelocityChange(velocityChange, rotationChange);
-
-            // With the change in velocity of the two bodies, the update of
-            // contact velocities means that some of the relative closing
-            // velocities need recomputing.
-            for (int i = 0; i < numContacts; i++) {
-                // Check each body in the contact
-                for (int b = 0; b < 2; b++) {
-                    if (c[i].body[b] == null) {
-                        continue;
-                    }
-                    // Check for a match with each body in the newly
-                    // resolved contact
-                    for (int d = 0; d < 2; d++) {
-                        if (c[i].body[b] != c[index].body[d]) {
-                            continue;
-                        }
-                        deltaVel.set(rotationChange[d]);
-                        deltaVel.cross(c[i].relativeContactPosition[b]);
-                        deltaVel.add(velocityChange[d]);
-                        // The sign of the change is negative if we're dealing
-                        // with the second body in a contact.
-                        deltaVel.mulTranspose(c[i].contactToWorld).mul(b != 0 ? -1 : 1);
-                        c[i].contactVelocity.add(deltaVel);
-                        c[i].calculateDesiredDeltaVelocity(duration);
-                    }
-                }
-            }
-            velocityIterationsUsed++;
-        }
-    }
-
-    /**
      * Resolves the positional issues with the given array of constraints, using
      * the given number of iterations.
      */
-    private Vector3f[] linearChange = {new Vector3f(), new Vector3f()};
-    private Vector3f[] angularChange = {new Vector3f(), new Vector3f()};
-
     protected void adjustPositions(Contact[] c, int numContacts, float duration) {
+
+        Vector3f[] linearChange = {new Vector3f(), new Vector3f()};
+        Vector3f[] angularChange = {new Vector3f(), new Vector3f()};
+
         int i, index;
         float max;
         // iteratively resolve interpenetrations in order of severity.
         positionIterationsUsed = 0;
         Vector3f deltaPosition = new Vector3f();
         while (positionIterationsUsed < positionIterations) {
-            //System.out.println("adjust pos test");
             // Find biggest penetration
             max = positionEpsilon;
             index = numContacts;
@@ -281,11 +212,71 @@ public class ContactResolver {
                         // and negative otherwise (because we're
                         // subtracting the resolution)..
                         c[i].penetration += (deltaPosition.dot(c[i].contactNormal) * (b != 0 ? 1 : -1));
-
                     }
                 }
             }
             positionIterationsUsed++;
+        }
+    }
+
+    /**
+     * Resolves the velocity issues with the given array of constraints, using
+     * the given number of iterations.
+     */
+    Vector3f[] velocityChange = {new Vector3f(), new Vector3f()};
+    Vector3f[] rotationChange = {new Vector3f(), new Vector3f()};
+
+    protected void adjustVelocities(Contact[] c, int numContacts, float duration) {
+        // iteratively handle impacts in order of severity.
+        velocityIterationsUsed = 0;
+        Vector3f deltaVel = new Vector3f();
+        while (velocityIterationsUsed < velocityIterations) {
+            // Find contact with maximum magnitude of probable velocity change.
+            float max = velocityEpsilon;
+            int index = numContacts;
+            for (int i = 0; i < numContacts; i++) {
+                if (c[i].desiredDeltaVelocity > max) {
+                    max = c[i].desiredDeltaVelocity;
+                    index = i;
+                }
+            }
+
+            if (index >= numContacts) {
+                break;
+            }
+
+            // Match the awake state at the contact
+            c[index].matchAwakeState();
+            // Do the resolution on the contact that came out top.
+            c[index].applyVelocityChange(velocityChange, rotationChange);
+
+            // With the change in velocity of the two bodies, the update of
+            // contact velocities means that some of the relative closing
+            // velocities need recomputing.
+            for (int i = 0; i < numContacts; i++) {
+                // Check each body in the contact
+                for (int b = 0; b < 2; b++) {
+                    if (c[i].body[b] == null) {
+                        continue;
+                    }
+                    // Check for a match with each body in the newly
+                    // resolved contact
+                    for (int d = 0; d < 2; d++) {
+                        if (c[i].body[b] != c[index].body[d]) {
+                            continue;
+                        }
+                        deltaVel.set(rotationChange[d]);
+                        deltaVel.cross(c[i].relativeContactPosition[b]);
+                        deltaVel.add(velocityChange[d]);
+                        // The sign of the change is negative if we're dealing
+                        // with the second body in a contact.
+                        deltaVel.mulTranspose(c[i].contactToWorld).mul(b != 0 ? -1 : 1);
+                        c[i].contactVelocity.add(deltaVel);
+                        c[i].calculateDesiredDeltaVelocity(duration);
+                    }
+                }
+            }
+            velocityIterationsUsed++;
         }
     }
 }

@@ -31,21 +31,33 @@ public class Rigidbody {
     private float linearDamping = 0.99f;
     private float angularDamping = 0.8f;
 
+    protected float sleepEpsilon = .5f;
     private boolean awake = true;
-
-    private final Vector3f acceleration = new Vector3f(0);
-    private final Vector3f lastFrameLinearAcceleration = new Vector3f(0);
+    protected float motion = sleepEpsilon * 2f;
 
     private final Vector3f angularVelocity = new Vector3f(0);
     private final Vector3f linearVelocity = new Vector3f(0);
 
+    private final Vector3f angularAcceleration = new Vector3f(0);
+    private final Vector3f linearAcceleration = new Vector3f(0);
+    private final Vector3f lastFrameLinearAcceleration = new Vector3f(0);
+
     private final Vector3f angularForces = new Vector3f(0);
     private final Vector3f linearForces = new Vector3f(0);
 
-    private final Matrix3f inverseInertiaTensorWorld = new Matrix3f();
+    protected Matrix3f inertiaTensor = new Matrix3f();
+    protected Matrix3f inverseInertiaTensor = new Matrix3f();
+    protected Matrix3f inverseInertiaTensorWorld = new Matrix3f();
+
+    private boolean canSleep = true;
 
     public Rigidbody() {
         this.transform = new Transform();
+    }
+
+    public Rigidbody(float mass) {
+        this();
+        setMass(mass);
     }
 
     public Rigidbody(Transform transform) {
@@ -58,14 +70,14 @@ public class Rigidbody {
         }
 
         // update linear velocity
-        lastFrameLinearAcceleration.set(acceleration);
+        lastFrameLinearAcceleration.set(linearAcceleration);
         lastFrameLinearAcceleration.fma(inverseMass, linearForces);
         linearVelocity.fma(delta, lastFrameLinearAcceleration);
         linearForces.set(0);
 
         // update angular velocity
         inverseInertiaTensorWorld.transform(angularForces);
-        angularVelocity.fma(delta, angularForces);
+        angularVelocity.fma(inverseMass, angularForces);
         angularForces.set(0);
 
         // apply damping
@@ -74,22 +86,52 @@ public class Rigidbody {
 
         // apply to transform
         transform.position.fma(delta, linearVelocity);
+
         transform.rotation.integrate(delta, angularVelocity.x, angularVelocity.y, angularVelocity.z);
+
         transform.setDirty();
 
+        calculateIITWorld();
+
         // make sleep
+        if (canSleep) {
+            float currentMotion = linearVelocity.dot(linearVelocity) + angularVelocity.dot(angularVelocity);
+            float bias = (float) Math.pow(0.5f, delta);
+            motion = bias * motion + (1 - bias) * currentMotion;
+            if (motion < sleepEpsilon) {
+                setAwake(false);
+            } else if (motion > 10 * sleepEpsilon) {
+                motion = 10 * sleepEpsilon;
+            }
+        }
+    }
+
+    public boolean isAwake() {
+        return awake;
+    }
+
+    public void setAwake(boolean b) {
+        if (b) {
+            awake = true;
+            // Add a bit of motion to avoid it falling asleep immediately. 
+            motion = sleepEpsilon * 2.0f;
+        } else {
+            awake = false;
+            linearVelocity.set(0, 0, 0);
+            angularVelocity.set(0, 0, 0);
+        }
     }
 
     public Transform getTransform() {
         return transform;
     }
 
-    public Vector3f getForces() {
+    public Vector3f getLinearForces() {
         return linearForces;
     }
 
     public Vector3f getAcceleration() {
-        return acceleration;
+        return linearAcceleration;
     }
 
     public Vector3f getLastFrameLinearAcceleration() {
@@ -113,6 +155,50 @@ public class Rigidbody {
         this.linearVelocity.add(velocity);
     }
 
+    public void addLinearVelocity(float x, float y, float z) {
+        this.linearVelocity.add(x, y, z);
+    }
+
+    public Vector3f getLinearAcceleration() {
+        return linearAcceleration;
+    }
+
+    public void setLinearAcceleration(Vector3f velocity) {
+        this.linearAcceleration.set(velocity);
+    }
+
+    public void setLinearAcceleration(float x, float y, float z) {
+        this.linearAcceleration.set(x, y, z);
+    }
+
+    public void addLinearAcceleration(Vector3f velocity) {
+        this.linearAcceleration.add(velocity);
+    }
+
+    public void addLinearAcceleration(float x, float y, float z) {
+        this.linearAcceleration.add(x, y, z);
+    }
+
+    public Vector3f getAngularAcceleration() {
+        return angularAcceleration;
+    }
+
+    public void setAngularAcceleration(Vector3f velocity) {
+        this.angularAcceleration.set(velocity);
+    }
+
+    public void setAngularAcceleration(float x, float y, float z) {
+        this.angularAcceleration.set(x, y, z);
+    }
+
+    public void addAngularAcceleration(Vector3f velocity) {
+        this.angularAcceleration.add(velocity);
+    }
+
+    public void addAngularAcceleration(float x, float y, float z) {
+        this.angularAcceleration.add(x, y, z);
+    }
+
     public Vector3f getAngularVelocity() {
         return angularVelocity;
     }
@@ -130,7 +216,7 @@ public class Rigidbody {
     }
 
     public void setMass(float mass) {
-        inverseMass = mass > 0 ? 1 / mass : 0;
+        inverseMass = mass > 0 ? 1f / mass : 0;
         this.mass = mass;
     }
 
@@ -142,16 +228,37 @@ public class Rigidbody {
         return inverseMass;
     }
 
-    public boolean isAwake() {
-        return awake;
+    public void setInertiaTensor(Matrix3f i) {
+        i.invert(inverseInertiaTensor);
+        this.inertiaTensor.set(i);
+        calculateIITWorld();
     }
 
-    public void setAwake(boolean awake) {
-        this.awake = awake;
+    public Matrix3f getInverseInertiaTensorWorld() {
+        return inverseInertiaTensorWorld;
     }
 
-    public void getInverseInertiaTensorWorld(Matrix3f matrix3f) {
-        // need to decide on how to go about this.
+    public void calculateIITWorld() {
+        Matrix3f trans = transform.rotation.get(new Matrix3f());
+        float t4 = trans.m00 * inverseInertiaTensor.m00 + trans.m01 * inverseInertiaTensor.m10 + trans.m02 * inverseInertiaTensor.m20;
+        float t9 = trans.m00 * inverseInertiaTensor.m01 + trans.m01 * inverseInertiaTensor.m11 + trans.m02 * inverseInertiaTensor.m21;
+        float t14 = trans.m00 * inverseInertiaTensor.m02 + trans.m01 * inverseInertiaTensor.m12 + trans.m02 * inverseInertiaTensor.m22;
+        float t28 = trans.m10 * inverseInertiaTensor.m00 + trans.m11 * inverseInertiaTensor.m10 + trans.m12 * inverseInertiaTensor.m20;
+        float t33 = trans.m10 * inverseInertiaTensor.m01 + trans.m11 * inverseInertiaTensor.m11 + trans.m12 * inverseInertiaTensor.m21;
+        float t38 = trans.m10 * inverseInertiaTensor.m02 + trans.m11 * inverseInertiaTensor.m12 + trans.m12 * inverseInertiaTensor.m22;
+        float t52 = trans.m20 * inverseInertiaTensor.m00 + trans.m21 * inverseInertiaTensor.m10 + trans.m22 * inverseInertiaTensor.m20;
+        float t57 = trans.m20 * inverseInertiaTensor.m01 + trans.m21 * inverseInertiaTensor.m11 + trans.m22 * inverseInertiaTensor.m21;
+        float t62 = trans.m20 * inverseInertiaTensor.m02 + trans.m21 * inverseInertiaTensor.m12 + trans.m22 * inverseInertiaTensor.m22;
+
+        inverseInertiaTensorWorld.m00 = t4 * trans.m00 + t9 * trans.m01 + t14 * trans.m02;
+        inverseInertiaTensorWorld.m01 = t4 * trans.m10 + t9 * trans.m11 + t14 * trans.m12;
+        inverseInertiaTensorWorld.m02 = t4 * trans.m20 + t9 * trans.m21 + t14 * trans.m22;
+        inverseInertiaTensorWorld.m10 = t28 * trans.m00 + t33 * trans.m01 + t38 * trans.m02;
+        inverseInertiaTensorWorld.m11 = t28 * trans.m10 + t33 * trans.m11 + t38 * trans.m12;
+        inverseInertiaTensorWorld.m12 = t28 * trans.m20 + t33 * trans.m21 + t38 * trans.m22;
+        inverseInertiaTensorWorld.m20 = t52 * trans.m00 + t57 * trans.m01 + t62 * trans.m02;
+        inverseInertiaTensorWorld.m21 = t52 * trans.m10 + t57 * trans.m11 + t62 * trans.m12;
+        inverseInertiaTensorWorld.m22 = t52 * trans.m20 + t57 * trans.m21 + t62 * trans.m22;
     }
 
 }

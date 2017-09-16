@@ -43,7 +43,9 @@ public class Transform {
     }
 
     public Transform(Transform t) {
-        this(new Vector3f(t.position), new Quaternionf(t.rotation), new Vector3f(t.scale));
+        this(new Vector3f(t.position),
+                new Quaternionf(t.rotation),
+                new Vector3f(t.scale));
     }
 
     public Transform(Vector3f p) {

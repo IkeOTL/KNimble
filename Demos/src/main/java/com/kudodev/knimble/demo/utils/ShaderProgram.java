@@ -22,6 +22,8 @@ import java.nio.FloatBuffer;
 import java.util.HashMap;
 import java.util.Map;
 import org.joml.Matrix4f;
+import org.joml.Vector3f;
+import org.joml.Vector4f;
 import static org.lwjgl.opengl.GL20.*;
 import org.lwjgl.system.MemoryStack;
 
@@ -51,6 +53,7 @@ public class ShaderProgram {
 
         createUniform("projViewMat");
         createUniform("modelMat");
+        createUniform("outColor");
 
     }
 
@@ -79,6 +82,22 @@ public class ShaderProgram {
             FloatBuffer fb = stack.mallocFloat(16);
             value.get(fb);
             glUniformMatrix4fv(uniforms.get(uniformName), false, fb);
+        }
+    }
+
+    public void setUniform(String uniformName, Vector3f value) {
+        try (MemoryStack stack = MemoryStack.stackPush()) {
+            FloatBuffer fb = stack.mallocFloat(3);
+            value.get(fb);
+            glUniform3fv(uniforms.get(uniformName), fb);
+        }
+    }
+
+    public void setUniform(String uniformName, Vector4f value) {
+        try (MemoryStack stack = MemoryStack.stackPush()) {
+            FloatBuffer fb = stack.mallocFloat(4);
+            value.get(fb);
+            glUniform4fv(uniforms.get(uniformName), fb);
         }
     }
 

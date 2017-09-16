@@ -26,6 +26,8 @@ import org.lwjgl.system.*;
 import java.nio.*;
 import java.util.List;
 import org.joml.Matrix4f;
+import org.joml.Vector3f;
+import org.joml.Vector4f;
 import static org.lwjgl.glfw.Callbacks.*;
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL11.*;
@@ -68,6 +70,8 @@ public abstract class RenderLoop {
         ShaderProgram shaderProgram = new ShaderProgram();
         Camera camera = new Camera();
 
+//        camera.getPosition().set(0, 5, 5f);
+//        camera.getRotation().rotate((float) Math.toRadians(90), 0, 0);
         float aspectRatio = (float) windowWidth / windowHeight;
         Matrix4f projMat = new Matrix4f().perspective(FOV, aspectRatio, Z_NEAR, Z_FAR);
 //        Matrix4f projMat = new Matrix4f().ortho(0, windowWidth, windowHeight, 0, -1, 1);
@@ -90,6 +94,7 @@ public abstract class RenderLoop {
             update(delta);
             physicsSpace.tick(delta);
 
+            glEnable(GL_DEPTH_TEST);
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
             shaderProgram.bind();
@@ -99,6 +104,7 @@ public abstract class RenderLoop {
 
             for (Shape r : shapes) {
                 shaderProgram.setUniform("modelMat", r.getCollider().getTransform().getTransMatrix());
+                shaderProgram.setUniform("outColor", r.getColor());
                 r.getMesh().render();
             }
 
