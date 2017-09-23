@@ -15,11 +15,15 @@
  */
 package com.kudodev.knimble.demo;
 
+import com.kudodev.knimble.demo.utils.RenderLoop;
 import com.kudodev.knimble.PhysicsSpace;
 import com.kudodev.knimble.Rigidbody;
 import com.kudodev.knimble.colliders.BoxCollider;
 import com.kudodev.knimble.colliders.Collider;
 import com.kudodev.knimble.colliders.SphereCollider;
+import com.kudodev.knimble.constraints.CableConstraint;
+import com.kudodev.knimble.constraints.Constraint;
+import com.kudodev.knimble.constraints.RodConstraint;
 import com.kudodev.knimble.demo.utils.Mesh;
 import com.kudodev.knimble.demo.utils.Shape;
 import com.kudodev.knimble.demo.utils.ShapeUtils;
@@ -31,14 +35,14 @@ import org.joml.Vector3f;
  *
  * @author IkeOTL
  */
-public class TestSpheres0 extends RenderLoop {
+public class DemoCableContraint0 extends RenderLoop {
 
-    public TestSpheres0(String title, PhysicsSpace physicsSpace) {
+    public DemoCableContraint0(String title, PhysicsSpace physicsSpace) {
         super(title, physicsSpace);
     }
 
     public static void main(String[] args) throws Exception {
-        new TestSpheres0("Display Test", new PhysicsSpace()).start();
+        new DemoCableContraint0("Display Test", new PhysicsSpace()).start();
     }
 
     Rigidbody r1;
@@ -48,14 +52,14 @@ public class TestSpheres0 extends RenderLoop {
         Mesh sphere = ShapeUtils.createSphereMesh(2);
         List<Shape> shapes = new ArrayList<>();
 
-        Rigidbody r0 = new Rigidbody(10);
+        Rigidbody r0 = new Rigidbody(10000);
         Collider c0 = new SphereCollider(r0, 2);
         Shape s0 = new Shape(sphere, c0);
         shapes.add(s0);
         s0.getColor().set(1, 0, 0, 1);
 //        r0.setAngularVelocity(0, 0, 15);
 //        r1.getTransform().setPosition(0, 0, -5);
-        r0.getTransform().setPosition(-2, 0f, -5f);
+        r0.getTransform().setPosition(0, 0f, -15f);
         r0.setLinearVelocity(0f, 0, 0);
 //        r0.setAngularVelocity(0, 0, 10);
 //        r1.addLinearAcceleration(.5f, 0, 0);
@@ -68,8 +72,9 @@ public class TestSpheres0 extends RenderLoop {
         Shape s1 = new Shape(sphere, c1);
         s1.getColor().set(0, 0, 1, 1);
         shapes.add(s1);
-        r1.getTransform().setPosition(2f, 0, -5);
-        r1.setLinearVelocity(-1f, 0, 0);
+        r1.getTransform().setPosition(0, 4, -15);
+        r1.setLinearAcceleration(0, -9, 0);
+        r1.setLinearVelocity(-5f, 0, 0);
         r1.setAngularVelocity(0, 0, 15);
 //        r1.getTransform().rotate((float) Math.toRadians(-90), new Vector3f(0, 1, 0));
         r1.getTransform().rotate((float) Math.toRadians(-45), new Vector3f(0, 0, 1));
@@ -80,6 +85,11 @@ public class TestSpheres0 extends RenderLoop {
         i0.getTransform().setScale(10, 10, 1);
         i0.getTransform().setPosition(0, 0, -10);
 //        shapes.add(new Shape(cube, i0));
+
+        CableConstraint con0 = new CableConstraint(r0, r1);
+        con0.setRestitution(.8f);
+
+        physicsSpace.addConstraint(con0);
 
         return shapes;
     }

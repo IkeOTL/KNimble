@@ -73,19 +73,16 @@ public class Transform {
 
     public void setPosition(float x, float y, float z) {
         position.set(x, y, z);
-//        worldPosition.set(x, y, z);
         isDirty = true;
     }
 
     public void setScale(float x, float y, float z) {
         scale.set(x, y, z);
-//        worldScale.set(x, y, z);
         isDirty = true;
     }
 
     public void rotate(float f, Vector3f v) {
         rotation.rotateAxis(f, v);
-//        worldRotation.set(rotation);
         isDirty = true;
     }
 
@@ -128,10 +125,8 @@ public class Transform {
             worldScale.set(parent.worldScale);
             worldScale.mul(scale);
 
-            // TODO improve?            
             transMatrix.translationRotateScale(worldPosition, worldRotation, worldScale);
             parent.getTransMatrix().mul(transMatrix, transMatrix);
-//            transMatrix.set(parent.getTransMatrix()).mul(new Matrix4f().translationRotateScale(worldPosition, worldRotation, worldScale));
         } else {
             worldPosition.set(position);
             worldRotation.set(rotation);

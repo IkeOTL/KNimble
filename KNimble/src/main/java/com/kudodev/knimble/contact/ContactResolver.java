@@ -231,6 +231,7 @@ public class ContactResolver {
         velocityIterationsUsed = 0;
         Vector3f deltaVel = new Vector3f();
         while (velocityIterationsUsed < velocityIterations) {
+            velocityIterationsUsed++;
             // Find contact with maximum magnitude of probable velocity change.
             float max = velocityEpsilon;
             int index = numContacts;
@@ -276,7 +277,6 @@ public class ContactResolver {
                     }
                 }
             }
-            velocityIterationsUsed++;
         }
     }
 }

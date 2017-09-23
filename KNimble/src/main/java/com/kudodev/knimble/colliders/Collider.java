@@ -44,7 +44,7 @@ public abstract class Collider {
         this.type = type;
         this.rigidbody = rigidbody;
         if (rigidbody != null) {
-            this.transform = rigidbody.getTransform();
+            this.transform = rigidbody.transform;
         } else {
             this.transform = new Transform();
         }

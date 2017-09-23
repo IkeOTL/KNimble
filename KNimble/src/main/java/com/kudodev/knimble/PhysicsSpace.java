@@ -16,6 +16,7 @@
 package com.kudodev.knimble;
 
 import com.kudodev.knimble.colliders.Collider;
+import com.kudodev.knimble.constraints.Constraint;
 import com.kudodev.knimble.contact.ContactCache;
 import com.kudodev.knimble.contact.ContactResolver;
 import java.util.ArrayList;
@@ -32,6 +33,7 @@ public class PhysicsSpace {
 
     private ContactCache contactCache = new ContactCache(256);
     private ContactResolver contactResolver = new ContactResolver();
+    private final List<Constraint> constraints = new ArrayList<>();
 
     private float frameAccum = 0;
     private float stepSize = 1f / 60f;
@@ -66,12 +68,17 @@ public class PhysicsSpace {
                     }
 
                     if (!contactCache.hasMoreContacts()) {
-                        System.err.println("NO MORE CONTACTS");
                         break outer;
                     }
-
                     c0.createCollision(c1, contactCache);
                 }
+            }
+
+            for (Constraint c : constraints) {
+                if (!contactCache.hasMoreContacts()) {
+                    break;
+                }
+                c.addContact(contactCache);
             }
 
             contactResolver.setIterations(contactCache.getContactCount() * 2);
@@ -91,5 +98,9 @@ public class PhysicsSpace {
 
     public void addCollider(Collider c) {
         colliders.add(c);
+    }
+
+    public void addConstraint(Constraint c) {
+        constraints.add(c);
     }
 }

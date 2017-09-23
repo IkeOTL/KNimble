@@ -60,7 +60,6 @@ public class SphereCollider extends Collider {
 
     @Override
     public boolean intersectsWith(SphereCollider other) {
-        System.out.println(Intersection.getDistanceSq(this, other));
         return Intersection.getDistanceSq(this, other) <= 0;
     }
 

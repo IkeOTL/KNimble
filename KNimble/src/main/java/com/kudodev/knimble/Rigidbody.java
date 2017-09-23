@@ -25,7 +25,7 @@ import org.joml.Vector3f;
  */
 public class Rigidbody {
 
-    private final Transform transform;
+    public final Transform transform;
 
     private float mass = 0;
     private float inverseMass = 0;

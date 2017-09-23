@@ -88,11 +88,17 @@ public class Contact {
      * Sets the data that doesn't normally depend on the position of the contact
      * (i.e. the bodies, and their material properties).
      */
-    public void setBodyData(Rigidbody one, Rigidbody two) {
-        body[0] = one;
-        body[1] = two;
-        this.friction = (one.getFriction() + two.getFriction()) * .5f;
-        this.restitution =(one.getRestitution() + two.getRestitution()) * .5f;
+    public void setBodyData(Rigidbody a, Rigidbody b) {
+        setBodyData(a, b,
+                (a.getFriction() + b.getFriction()) * .5f,
+                (a.getRestitution() + b.getRestitution()) * .5f);
+    }
+
+    public void setBodyData(Rigidbody a, Rigidbody b, float friction, float restitution) {
+        body[0] = a;
+        body[1] = b;
+        this.friction = friction;
+        this.restitution = restitution;
     }
 
     /**
@@ -113,9 +119,9 @@ public class Contact {
         calculateContactBasis();
 
         // Store the relative position of the contact relative to each body
-        relativeContactPosition[0].set(contactPoint).sub(body[0].getTransform().getWorldPosition());
+        relativeContactPosition[0].set(contactPoint).sub(body[0].transform.getWorldPosition());
         if (body[1] != null) {
-            relativeContactPosition[1].set(contactPoint).sub(body[1].getTransform().getWorldPosition());
+            relativeContactPosition[1].set(contactPoint).sub(body[1].transform.getWorldPosition());
         }
 
         // Find the relative velocity of the bodies at the contact point.
@@ -302,7 +308,7 @@ public class Contact {
         Vector3f impulsiveTorque = new Vector3f(relativeContactPosition[0]).cross(impulse);
         rotationChange[0].set(impulsiveTorque).mul(inverseInertiaTensor[0]);
         velocityChange[0].set(impulse).mul(body[0].getInverseMass());
-        
+
         // Apply the changes
         body[0].addLinearVelocity(velocityChange[0]);
         body[0].addAngularVelocity(rotationChange[0]);
@@ -312,7 +318,6 @@ public class Contact {
             impulsiveTorque.set(impulse).cross(relativeContactPosition[1]);
             rotationChange[1].set(impulsiveTorque).mul(inverseInertiaTensor[1]);
             velocityChange[1].set(impulse).mul(-body[1].getInverseMass());
-            
 
             // And apply them.
             body[1].addLinearVelocity(velocityChange[1]);
