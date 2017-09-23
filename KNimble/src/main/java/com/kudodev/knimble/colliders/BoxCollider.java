@@ -15,6 +15,7 @@
  */
 package com.kudodev.knimble.colliders;
 
+import com.kudodev.knimble.JOMLExtra;
 import com.kudodev.knimble.Rigidbody;
 import com.kudodev.knimble.contact.Contact;
 import com.kudodev.knimble.contact.ContactCache;
@@ -38,14 +39,7 @@ public class BoxCollider extends Collider {
 
     public BoxCollider(Rigidbody rigidbody) {
         this(rigidbody, new Vector3f(.5f));
-
-        Matrix3f inertiaTensor = new Matrix3f();
-        float mass = rigidbody.getMass();
-        inertiaTensor.identity();
-        inertiaTensor.m00 = 0.333f * mass * (.5f * .5f + .5f * .5f);
-        inertiaTensor.m11 = 0.333f * mass * (.5f * .5f + .5f * .5f);
-        inertiaTensor.m22 = 0.333f * mass * (.5f * .5f + .5f * .5f);
-        rigidbody.setInertiaTensor(inertiaTensor);
+        updateInertiaTensor();
     }
 
     public BoxCollider() {
@@ -56,14 +50,35 @@ public class BoxCollider extends Collider {
         this(null, halfExtents);
     }
 
+    public Vector3f getExtents() {
+        return extents;
+    }
+
+    @Override
+    public void updateInertiaTensor() {
+        if (rigidbody == null) {
+            return;
+        }
+
+        Matrix3f inertiaTensor = new Matrix3f();
+        float moment = 0.333f * rigidbody.getMass() * (.5f * .5f + .5f * .5f);
+        inertiaTensor.identity();
+        inertiaTensor.m00 = moment;
+        inertiaTensor.m11 = moment;
+        inertiaTensor.m22 = moment;
+        rigidbody.setInertiaTensor(inertiaTensor);
+    }
+
     @Override
     public boolean intersectsWith(SphereCollider other) {
-        return false;
+        // might as well use sphere's implementation
+        return other.intersectsWith(this);
     }
 
     @Override
     public void createCollision(SphereCollider other, ContactCache contactCache) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        // might as well use sphere's implementation
+        other.createCollision(this, contactCache);
     }
 
     @Override
@@ -97,7 +112,7 @@ public class BoxCollider extends Collider {
     }
 
     private boolean overlapOnAxis(BoxCollider other, Vector3f distanceFromCenters, float x, float y, float z) {
-        return penetrationOnAxis(other, distanceFromCenters, x, y, z) > 0;
+        return penetrationOnAxis(other, distanceFromCenters, x, y, z) >= 0;
     }
 
     private float penetrationOnAxis(BoxCollider other, Vector3f distanceFromCenters, float x, float y, float z) {
@@ -178,8 +193,8 @@ public class BoxCollider extends Collider {
         penData.bestAxis -= 6;
         int oneAxisIndex = penData.bestAxis / 3;
         int twoAxisIndex = penData.bestAxis % 3;
-        Vector3f oneAxis = getColumn(m, oneAxisIndex, new Vector3f());
-        Vector3f twoAxis = getColumn(o, twoAxisIndex, new Vector3f());
+        Vector3f oneAxis = JOMLExtra.getColumn(m, oneAxisIndex, new Vector3f());
+        Vector3f twoAxis = JOMLExtra.getColumn(o, twoAxisIndex, new Vector3f());
         Vector3f axis = new Vector3f(oneAxis).cross(twoAxis);
         axis.normalize();
 
@@ -199,14 +214,14 @@ public class BoxCollider extends Collider {
         Vector3f temp = new Vector3f();
         for (int i = 0; i < 3; i++) {
             if (i == oneAxisIndex) {
-                setVecComponent(ptOnOneEdge, i, 0);
-            } else if (getColumn(m, i, temp).dot(axis) > 0) {
-                setVecComponent(ptOnOneEdge, i, -ptOnOneEdge.get(i));
+                JOMLExtra.setVec3Component(ptOnOneEdge, i, 0);
+            } else if (JOMLExtra.getColumn(m, i, temp).dot(axis) > 0) {
+                JOMLExtra.setVec3Component(ptOnOneEdge, i, -ptOnOneEdge.get(i));
             }
             if (i == twoAxisIndex) {
-                setVecComponent(ptOnTwoEdge, i, 0);
-            } else if (getColumn(o, i, temp).dot(axis) < 0) {
-                setVecComponent(ptOnTwoEdge, i, -ptOnTwoEdge.get(i));
+                JOMLExtra.setVec3Component(ptOnTwoEdge, i, 0);
+            } else if (JOMLExtra.getColumn(o, i, temp).dot(axis) < 0) {
+                JOMLExtra.setVec3Component(ptOnTwoEdge, i, -ptOnTwoEdge.get(i));
             }
         }
 
@@ -229,41 +244,7 @@ public class BoxCollider extends Collider {
         contact.penetration = penData.penetration;
         contact.contactNormal.set(axis);
         contact.contactPoint.set(vertex);
-        contact.setBodyData((Rigidbody) this.rigidbody, (Rigidbody) other.rigidbody, contactCache.friction, contactCache.restitution);
-    }
-
-    private void setVecComponent(Vector3f v, int component, float f) throws IllegalArgumentException {
-        switch (component) {
-            case 0:
-                v.x = f;
-                break;
-            case 1:
-                v.y = f;
-                break;
-            case 2:
-                v.z = f;
-                break;
-            default:
-                throw new IllegalArgumentException();
-        }
-    }
-
-    private Vector3f getColumn(Matrix4f m, int i, Vector3f dest) {
-        switch (i) {
-            case 0:
-                dest.set(m.m00(), m.m01(), m.m02());
-                break;
-            case 1:
-                dest.set(m.m10(), m.m11(), m.m12());
-                break;
-            case 2:
-                dest.set(m.m20(), m.m21(), m.m22());
-                break;
-            case 3:
-                dest.set(m.m30(), m.m31(), m.m32());
-                break;
-        }
-        return dest;
+        contact.setBodyData((Rigidbody) this.rigidbody, (Rigidbody) other.rigidbody);
     }
 
     private void testAxis(BoxCollider other, Vector3f distanceFromCenters, float x, float y, float z, int index, PenetrationData penetrationData) {
@@ -301,7 +282,7 @@ public class BoxCollider extends Collider {
         // this axis.
         Matrix4f o = one.transform.getTransMatrix();
         Matrix4f t = two.transform.getTransMatrix();
-        Vector3f normal = getColumn(o, best, new Vector3f());
+        Vector3f normal = JOMLExtra.getColumn(o, best, new Vector3f());
         if (normal.x * toCenter.x + normal.y * toCenter.y + normal.z * toCenter.z > 0) {
             normal.mul(-1.0f);
         }
@@ -323,7 +304,7 @@ public class BoxCollider extends Collider {
 
         contact.contactNormal.set(normal);
         contact.penetration = pen;
-        contact.setBodyData((Rigidbody) one.rigidbody, (Rigidbody) two.rigidbody, data.friction, data.restitution);
+        contact.setBodyData((Rigidbody) one.rigidbody, (Rigidbody) two.rigidbody);
     }
 
     /**
@@ -369,4 +350,5 @@ public class BoxCollider extends Collider {
         Vector3f cTwo = new Vector3f(dTwo).mul(mub).add(pTwo).mul(.5f);
         return cOne.add(cTwo);
     }
+
 }

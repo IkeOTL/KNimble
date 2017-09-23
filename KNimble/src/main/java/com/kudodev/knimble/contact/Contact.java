@@ -88,11 +88,11 @@ public class Contact {
      * Sets the data that doesn't normally depend on the position of the contact
      * (i.e. the bodies, and their material properties).
      */
-    public void setBodyData(Rigidbody one, Rigidbody two, float friction, float restitution) {
+    public void setBodyData(Rigidbody one, Rigidbody two) {
         body[0] = one;
         body[1] = two;
-        this.friction = friction;
-        this.restitution = restitution;
+        this.friction = (one.getFriction() + two.getFriction()) * .5f;
+        this.restitution =(one.getRestitution() + two.getRestitution()) * .5f;
     }
 
     /**
@@ -113,11 +113,6 @@ public class Contact {
         calculateContactBasis();
 
         // Store the relative position of the contact relative to each body
-        //CHECK: WORLD OR LOCAL POS?        
-//        relativeContactPosition[0].set(contactPoint).sub(body[0].collider.worldPosition);
-//        if (body[1] != null) {
-//            relativeContactPosition[1].set(contactPoint).sub(body[1].collider.worldPosition);
-//        }
         relativeContactPosition[0].set(contactPoint).sub(body[0].getTransform().getWorldPosition());
         if (body[1] != null) {
             relativeContactPosition[1].set(contactPoint).sub(body[1].getTransform().getWorldPosition());
@@ -544,7 +539,6 @@ public class Contact {
             impulseContact.y /= planarImpulse;
             impulseContact.z /= planarImpulse;
 
-            //CHECK: FLIP ROWS/COLS
             impulseContact.x = desiredDeltaVelocity / (deltaVelocity.m00
                     + deltaVelocity.m01 * friction * impulseContact.y
                     + deltaVelocity.m02 * friction * impulseContact.z);

@@ -24,10 +24,6 @@ public class ContactCache {
     private final Contact[] contacts;
     private int contactCount = 0;
 
-    public float friction = .9f;
-
-    public float restitution = .02f;
-
     public ContactCache(int maxContacts) {
         contacts = new Contact[maxContacts];
         for (int i = 0; i < maxContacts; i++) {

@@ -79,6 +79,8 @@ public abstract class Collider {
         }
     }
 
+    public abstract void updateInertiaTensor();
+
     public abstract boolean intersectsWith(SphereCollider other);
 
     public abstract boolean intersectsWith(BoxCollider other);

@@ -16,6 +16,7 @@
 package com.kudodev.knimble;
 
 import org.joml.Matrix3f;
+import org.joml.Matrix4f;
 import org.joml.Vector3f;
 
 /**
@@ -48,6 +49,10 @@ public class Rigidbody {
     protected Matrix3f inertiaTensor = new Matrix3f();
     protected Matrix3f inverseInertiaTensor = new Matrix3f();
     protected Matrix3f inverseInertiaTensorWorld = new Matrix3f();
+
+    // temp material data
+    protected float friction = .9f;
+    protected float restitution = .03f;
 
     private boolean canSleep = true;
 
@@ -95,14 +100,14 @@ public class Rigidbody {
 
         // make sleep
         if (canSleep) {
-            float currentMotion = linearVelocity.dot(linearVelocity) + angularVelocity.dot(angularVelocity);
-            float bias = (float) Math.pow(0.5f, delta);
-            motion = bias * motion + (1 - bias) * currentMotion;
-            if (motion < sleepEpsilon) {
-                setAwake(false);
-            } else if (motion > 10 * sleepEpsilon) {
-                motion = 10 * sleepEpsilon;
-            }
+//            float currentMotion = linearVelocity.dot(linearVelocity) + angularVelocity.dot(angularVelocity);
+//            float bias = (float) Math.pow(0.5f, delta);
+//            motion = bias * motion + (1 - bias) * currentMotion;
+//            if (motion < sleepEpsilon) {
+//                setAwake(false);
+//            } else if (motion > 10 * sleepEpsilon) {
+//                motion = 10 * sleepEpsilon;
+//            }
         }
     }
 
@@ -120,6 +125,22 @@ public class Rigidbody {
             linearVelocity.set(0, 0, 0);
             angularVelocity.set(0, 0, 0);
         }
+    }
+
+    public float getFriction() {
+        return friction;
+    }
+
+    public void setFriction(float friction) {
+        this.friction = friction;
+    }
+
+    public float getRestitution() {
+        return restitution;
+    }
+
+    public void setRestitution(float restitution) {
+        this.restitution = restitution;
     }
 
     public Transform getTransform() {
@@ -239,26 +260,26 @@ public class Rigidbody {
     }
 
     public void calculateIITWorld() {
-        Matrix3f trans = transform.rotation.get(new Matrix3f());
-        float t4 = trans.m00 * inverseInertiaTensor.m00 + trans.m01 * inverseInertiaTensor.m10 + trans.m02 * inverseInertiaTensor.m20;
-        float t9 = trans.m00 * inverseInertiaTensor.m01 + trans.m01 * inverseInertiaTensor.m11 + trans.m02 * inverseInertiaTensor.m21;
-        float t14 = trans.m00 * inverseInertiaTensor.m02 + trans.m01 * inverseInertiaTensor.m12 + trans.m02 * inverseInertiaTensor.m22;
-        float t28 = trans.m10 * inverseInertiaTensor.m00 + trans.m11 * inverseInertiaTensor.m10 + trans.m12 * inverseInertiaTensor.m20;
-        float t33 = trans.m10 * inverseInertiaTensor.m01 + trans.m11 * inverseInertiaTensor.m11 + trans.m12 * inverseInertiaTensor.m21;
-        float t38 = trans.m10 * inverseInertiaTensor.m02 + trans.m11 * inverseInertiaTensor.m12 + trans.m12 * inverseInertiaTensor.m22;
-        float t52 = trans.m20 * inverseInertiaTensor.m00 + trans.m21 * inverseInertiaTensor.m10 + trans.m22 * inverseInertiaTensor.m20;
-        float t57 = trans.m20 * inverseInertiaTensor.m01 + trans.m21 * inverseInertiaTensor.m11 + trans.m22 * inverseInertiaTensor.m21;
-        float t62 = trans.m20 * inverseInertiaTensor.m02 + trans.m21 * inverseInertiaTensor.m12 + trans.m22 * inverseInertiaTensor.m22;
+        Matrix4f trans = transform.getTransMatrix();
+        float t4 = trans.m00() * inverseInertiaTensor.m00() + trans.m01() * inverseInertiaTensor.m10() + trans.m02() * inverseInertiaTensor.m20();
+        float t9 = trans.m00() * inverseInertiaTensor.m01() + trans.m01() * inverseInertiaTensor.m11() + trans.m02() * inverseInertiaTensor.m21();
+        float t14 = trans.m00() * inverseInertiaTensor.m02() + trans.m01() * inverseInertiaTensor.m12() + trans.m02() * inverseInertiaTensor.m22();
+        float t28 = trans.m10() * inverseInertiaTensor.m00() + trans.m11() * inverseInertiaTensor.m10() + trans.m12() * inverseInertiaTensor.m20();
+        float t33 = trans.m10() * inverseInertiaTensor.m01() + trans.m11() * inverseInertiaTensor.m11() + trans.m12() * inverseInertiaTensor.m21();
+        float t38 = trans.m10() * inverseInertiaTensor.m02() + trans.m11() * inverseInertiaTensor.m12() + trans.m12() * inverseInertiaTensor.m22();
+        float t52 = trans.m20() * inverseInertiaTensor.m00() + trans.m21() * inverseInertiaTensor.m10() + trans.m22() * inverseInertiaTensor.m20();
+        float t57 = trans.m20() * inverseInertiaTensor.m01() + trans.m21() * inverseInertiaTensor.m11() + trans.m22() * inverseInertiaTensor.m21();
+        float t62 = trans.m20() * inverseInertiaTensor.m02() + trans.m21() * inverseInertiaTensor.m12() + trans.m22() * inverseInertiaTensor.m22();
 
-        inverseInertiaTensorWorld.m00 = t4 * trans.m00 + t9 * trans.m01 + t14 * trans.m02;
-        inverseInertiaTensorWorld.m01 = t4 * trans.m10 + t9 * trans.m11 + t14 * trans.m12;
-        inverseInertiaTensorWorld.m02 = t4 * trans.m20 + t9 * trans.m21 + t14 * trans.m22;
-        inverseInertiaTensorWorld.m10 = t28 * trans.m00 + t33 * trans.m01 + t38 * trans.m02;
-        inverseInertiaTensorWorld.m11 = t28 * trans.m10 + t33 * trans.m11 + t38 * trans.m12;
-        inverseInertiaTensorWorld.m12 = t28 * trans.m20 + t33 * trans.m21 + t38 * trans.m22;
-        inverseInertiaTensorWorld.m20 = t52 * trans.m00 + t57 * trans.m01 + t62 * trans.m02;
-        inverseInertiaTensorWorld.m21 = t52 * trans.m10 + t57 * trans.m11 + t62 * trans.m12;
-        inverseInertiaTensorWorld.m22 = t52 * trans.m20 + t57 * trans.m21 + t62 * trans.m22;
+        inverseInertiaTensorWorld.m00(t4 * trans.m00() + t9 * trans.m01() + t14 * trans.m02());
+        inverseInertiaTensorWorld.m01(t4 * trans.m10() + t9 * trans.m11() + t14 * trans.m12());
+        inverseInertiaTensorWorld.m02(t4 * trans.m20() + t9 * trans.m21() + t14 * trans.m22());
+        inverseInertiaTensorWorld.m10(t28 * trans.m00() + t33 * trans.m01() + t38 * trans.m02());
+        inverseInertiaTensorWorld.m11(t28 * trans.m10() + t33 * trans.m11() + t38 * trans.m12());
+        inverseInertiaTensorWorld.m12(t28 * trans.m20() + t33 * trans.m21() + t38 * trans.m22());
+        inverseInertiaTensorWorld.m20(t52 * trans.m00() + t57 * trans.m01() + t62 * trans.m02());
+        inverseInertiaTensorWorld.m21(t52 * trans.m10() + t57 * trans.m11() + t62 * trans.m12());
+        inverseInertiaTensorWorld.m22(t52 * trans.m20() + t57 * trans.m21() + t62 * trans.m22());
     }
 
 }

@@ -16,8 +16,10 @@
 package com.kudodev.knimble.colliders;
 
 import com.kudodev.knimble.Rigidbody;
+import com.kudodev.knimble.contact.Contact;
 import com.kudodev.knimble.contact.ContactCache;
 import org.joml.Intersectionf;
+import org.joml.Matrix3f;
 import org.joml.Vector3f;
 
 /**
@@ -26,38 +28,75 @@ import org.joml.Vector3f;
  */
 public class SphereCollider extends Collider {
 
-    protected float radius = .5f;
-
     public SphereCollider(Rigidbody rigidbody) {
         this(rigidbody, 0.5f);
     }
 
     public SphereCollider(Rigidbody rigidbody, float radius) {
         super(ColliderType.SPHERE, rigidbody);
-        this.radius = radius;
+        transform.setScale(radius * 2, radius * 2, radius * 2);
+        updateInertiaTensor();
+    }
+
+    public float getRadius() {
+        return .5f * transform.getWorldScale().x;
+    }
+
+    @Override
+    public void updateInertiaTensor() {
+        if (rigidbody == null) {
+            return;
+        }
+
+        float radius = getRadius();
+        float moment = .4f * rigidbody.getMass() * (radius * radius);
+        Matrix3f inertiaTensor = new Matrix3f();
+        inertiaTensor.identity();
+        inertiaTensor.m00 = moment;
+        inertiaTensor.m11 = moment;
+        inertiaTensor.m22 = moment;
+        rigidbody.setInertiaTensor(inertiaTensor);
     }
 
     @Override
     public boolean intersectsWith(SphereCollider other) {
-        return Intersectionf.testSphereSphere(
-                transform.getWorldPosition(), radius,
-                other.transform.getWorldPosition(), other.radius);
+        System.out.println(Intersection.getDistanceSq(this, other));
+        return Intersection.getDistanceSq(this, other) <= 0;
     }
 
     @Override
     public boolean intersectsWith(BoxCollider other) {
-
-        return false;
+        float radius = getRadius();
+        return Intersection.getDistanceSq(other, transform.getWorldPosition())
+                <= radius * radius;
     }
 
     @Override
     public void createCollision(SphereCollider other, ContactCache contactCache) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        Contact contact = contactCache.getContact();
+
+        Vector3f pos0 = transform.getWorldPosition();
+        Vector3f pos1 = other.transform.getWorldPosition();
+
+        contact.penetration = Intersection.getDistance(this, other);
+        contact.contactNormal.set(pos0).sub(pos1).normalize();
+        contact.contactPoint.set(contact.contactNormal).mul(getRadius()).add(pos1);
+
+        contact.setBodyData((Rigidbody) this.rigidbody, (Rigidbody) other.rigidbody);
     }
 
     @Override
     public void createCollision(BoxCollider other, ContactCache contactCache) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        Contact contact = contactCache.getContact();
+
+        Vector3f closestPoint = new Vector3f();
+        Vector3f pos = transform.getWorldPosition();
+        float radius = getRadius();
+        contact.penetration = radius * radius - Intersection.getDistanceSq(other, pos, closestPoint);
+
+        contact.contactNormal.set(pos).sub(closestPoint).normalize();
+        contact.contactPoint.set(closestPoint);
+        contact.setBodyData((Rigidbody) this.rigidbody, (Rigidbody) other.rigidbody);
     }
 
 }
