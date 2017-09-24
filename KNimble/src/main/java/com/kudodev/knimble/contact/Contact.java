@@ -18,7 +18,6 @@ package com.kudodev.knimble.contact;
 import com.kudodev.knimble.Rigidbody;
 import com.kudodev.knimble.Transform;
 import org.joml.Matrix3f;
-import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
 /**
@@ -204,21 +203,21 @@ public class Contact {
     private Vector3f calculateLocalVelocity(int bodyIndex, float duration) {
         Rigidbody thisBody = body[bodyIndex];
 
-        Vector3f contactVelocity = new Vector3f();
         // Work out the velocity of the contact point.
+        Vector3f contactVelocity = new Vector3f();
         contactVelocity.set(thisBody.getAngularVelocity()).cross(relativeContactPosition[bodyIndex]);
         contactVelocity.add(thisBody.getLinearVelocity());
 
         // Turn the velocity into contact-coordinates.
-        //CHECK: mulTranspose?
         contactVelocity.mulTranspose(contactToWorld);
 
         // Calculate the ammount of velocity that is due to forces without
         // reactions.
         Vector3f accVelocity = new Vector3f(thisBody.getLastFrameLinearAcceleration()).mul(duration);
+
         // Calculate the velocity in contact-coordinates.
-        //CHECK: mulTranspose?
         accVelocity.mulTranspose(contactToWorld);
+
         // We ignore any component of acceleration in the contact normal
         // direction, we are only interested in planar acceleration
         accVelocity.x = 0;
@@ -271,7 +270,6 @@ public class Contact {
         }
 
         // Make a matrix from the three vectors.
-        //CHECK: MIGHT HAVE TO FLIP ROWS/COLUMNS
         contactToWorld.set(contactNormal, contactTangent[0], contactTangent[1]);
 
     }

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.kudodev.knimble.demo;
+package com.kudodev.knimble.demo.links;
 
 import com.kudodev.knimble.demo.utils.RenderLoop;
 import com.kudodev.knimble.PhysicsSpace;
@@ -43,7 +43,7 @@ public class DemoRodLink0 extends RenderLoop {
     }
 
     @Override
-    protected List<Shape> initShapes(PhysicsSpace physicsSpace) {
+    protected List<Shape> init(PhysicsSpace physicsSpace) {
         Mesh sphere = ShapeUtils.createSphereMesh(2);
         List<Shape> shapes = new ArrayList<>();
 

@@ -17,9 +17,6 @@ package com.kudodev.knimble.demo.utils;
 
 import java.nio.FloatBuffer;
 import java.nio.ShortBuffer;
-import java.util.ArrayList;
-import java.util.List;
-import org.joml.Vector3f;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.util.par.ParShapes;
 import org.lwjgl.util.par.ParShapesMesh;
@@ -29,6 +26,42 @@ import org.lwjgl.util.par.ParShapesMesh;
  * @author IkeOTL
  */
 public class ShapeUtils {
+
+    public static Mesh createCapsuleMesh(float height, float radius) {
+        ParShapesMesh cylinder = createCylinderParShape(height, radius);
+//
+        ParShapesMesh s0 = ParShapes.par_shapes_create_hemisphere(8, 6);
+        ParShapes.par_shapes_scale(s0, radius, radius, radius);
+        ParShapes.par_shapes_translate(s0, 0, height * .5f, 0);
+        ParShapes.par_shapes_merge_and_free(cylinder, s0);
+
+        ParShapesMesh s1 = ParShapes.par_shapes_create_hemisphere(8, 6);
+        ParShapes.par_shapes_scale(s1, radius, radius, radius);
+        ParShapes.par_shapes_rotate(s1, (float) Math.toRadians(180), new float[]{0, 0, 1});
+        ParShapes.par_shapes_translate(s1, 0, height * -.5f, 0);
+
+        ParShapes.par_shapes_merge_and_free(cylinder, s1);
+
+        short numIndices = (short) (cylinder.ntriangles() * 3);
+        int numPoints = cylinder.npoints();
+        FloatBuffer points = cylinder.points(numPoints * 3);
+        FloatBuffer normals = cylinder.normals(numPoints * 3);
+        ShortBuffer indices = cylinder.triangles(numIndices);
+
+        Mesh m = new Mesh(indices, numIndices, interleaveBuffers(numPoints, points, normals));
+
+        ParShapes.par_shapes_free_mesh(cylinder);
+
+        return m;
+    }
+
+    public static ParShapesMesh createCylinderParShape(float height, float radius) {
+        ParShapesMesh cylinder = ParShapes.par_shapes_create_cylinder(12, 1);
+        ParShapes.par_shapes_rotate(cylinder, (float) Math.toRadians(90), new float[]{1, 0, 0});
+        ParShapes.par_shapes_scale(cylinder, radius, height, radius);
+        ParShapes.par_shapes_translate(cylinder, 0, height * .5f, 0);
+        return cylinder;
+    }
 
     public static Mesh createSphereMesh(int level) {
         ParShapesMesh parShape = ParShapes.par_shapes_create_subdivided_sphere(level);
@@ -56,7 +89,8 @@ public class ShapeUtils {
 
         int numPoints = parShape.npoints();
         FloatBuffer points = parShape.points(numPoints * 3);
-        FloatBuffer normals = generateNormals(points, numPoints, indices, numIndices);
+        ParShapes.par_shapes_compute_normals(parShape);
+        FloatBuffer normals = parShape.normals(numPoints * 3);
 
         Mesh m = new Mesh(indices, numIndices, interleaveBuffers(numPoints, points, normals));
 
@@ -82,56 +116,5 @@ public class ShapeUtils {
         }
         outBuf.flip();
         return outBuf;
-    }
-
-    private static FloatBuffer generateNormals(FloatBuffer points, int numPoints, ShortBuffer indices, short numIndices) {
-        float[] vertArray = new float[numPoints * 3];
-        points.get(vertArray);
-        points.flip();
-
-        short[] indicesArray = new short[numIndices];
-        indices.get(indicesArray);
-        indices.flip();
-
-        Vector3f p1 = new Vector3f();
-        Vector3f p2 = new Vector3f();
-        Vector3f p3 = new Vector3f();
-        Vector3f u = new Vector3f();
-        Vector3f v = new Vector3f();
-
-        List<Vector3f> normals = new ArrayList<>();
-        for (int i = 0; i < numPoints; i++) {
-            normals.add(new Vector3f());
-        }
-        for (int i = 0; i < numIndices; i += 3) {
-            int index1 = indicesArray[i];
-            int index2 = indicesArray[i + 1];
-            int index3 = indicesArray[i + 2];
-
-            p1.set(vertArray[index1 * 3], vertArray[index1 * 3 + 1], vertArray[index1 * 3 + 2]);
-            p2.set(vertArray[index2 * 3], vertArray[index2 * 3 + 1], vertArray[index2 * 3 + 2]);
-            p3.set(vertArray[index3 * 3], vertArray[index3 * 3 + 1], vertArray[index3 * 3 + 2]);
-
-            u.set(p2).sub(p1);
-            v.set(p3).sub(p1);
-            u.cross(v);
-
-            Vector3f n1 = normals.get(index1);
-            Vector3f n2 = normals.get(index2);
-            Vector3f n3 = normals.get(index3);
-
-            n1.add(u);
-            n2.add(u);
-            n3.add(u);
-        }
-        FloatBuffer normalsBuffer = BufferUtils.createFloatBuffer(numPoints * 3);
-        for (Vector3f n : normals) {
-            n.normalize();
-            normalsBuffer.put(n.x);
-            normalsBuffer.put(n.y);
-            normalsBuffer.put(n.z);
-        }
-        normalsBuffer.flip();
-        return normalsBuffer;
     }
 }

@@ -16,25 +16,17 @@
 package com.kudodev.knimble.demo.utils;
 
 import com.kudodev.knimble.PhysicsSpace;
-import com.kudodev.knimble.demo.utils.Camera;
-import com.kudodev.knimble.demo.utils.Mesh;
-import com.kudodev.knimble.demo.utils.ShaderProgram;
-import com.kudodev.knimble.demo.utils.Shape;
 import org.lwjgl.glfw.*;
 import org.lwjgl.opengl.*;
 import org.lwjgl.system.*;
 import java.nio.*;
 import java.util.List;
 import org.joml.Matrix4f;
-import org.joml.Vector3f;
-import org.joml.Vector4f;
 import static org.lwjgl.glfw.Callbacks.*;
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.system.MemoryStack.*;
 import static org.lwjgl.system.MemoryUtil.*;
-import org.lwjgl.util.par.ParShapes;
-import org.lwjgl.util.par.ParShapesMesh;
 
 /**
  *
@@ -54,6 +46,8 @@ public abstract class RenderLoop {
     private int currFPS, FPS;
     private float FPSTime;
 
+    private boolean wireframe = true;
+
     private final String title;
     private final PhysicsSpace physicsSpace;
 
@@ -62,7 +56,7 @@ public abstract class RenderLoop {
         this.physicsSpace = physicsSpace;
     }
 
-    protected abstract List<Shape> initShapes(PhysicsSpace physicsSpace);
+    protected abstract List<Shape> init(PhysicsSpace physicsSpace);
 
     protected abstract void update(float delta);
 
@@ -79,7 +73,7 @@ public abstract class RenderLoop {
         Matrix4f viewMat = new Matrix4f();
         Matrix4f projViewMat = new Matrix4f();
 
-        List<Shape> shapes = initShapes(physicsSpace);
+        List<Shape> shapes = init(physicsSpace);
 
         lastFrame = System.nanoTime();
         float delta;
@@ -97,7 +91,11 @@ public abstract class RenderLoop {
             glEnable(GL_DEPTH_TEST);
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-            glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+
+            if (wireframe) {
+                glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+            }
 
             shaderProgram.bind();
 
@@ -115,6 +113,10 @@ public abstract class RenderLoop {
             // render here
             glfwSwapBuffers(window);
         }
+    }
+
+    public void setWireframe(boolean wireframe) {
+        this.wireframe = wireframe;
     }
 
     public void start() throws Exception {

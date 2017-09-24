@@ -27,7 +27,7 @@ import com.kudodev.knimble.contact.ContactCache;
 public abstract class Collider {
 
     public enum ColliderType {
-        SPHERE, CUBE
+        SPHERE, CUBE, CAPSULE
     };
 
     protected final ColliderType type;
@@ -63,19 +63,31 @@ public abstract class Collider {
     }
 
     public boolean intersectsWith(Collider other) {
-        if (other.type == ColliderType.CUBE) {
-            return intersectsWith((BoxCollider) other);
-        } else if (other.type == ColliderType.SPHERE) {
-            return intersectsWith((SphereCollider) other);
+        switch (other.type) {
+            case CUBE:
+                return intersectsWith((BoxCollider) other);
+            case SPHERE:
+                return intersectsWith((SphereCollider) other);
+            case CAPSULE:
+                return intersectsWith((CapsuleCollider) other);
+            default:
+                return false;
         }
-        return false;
     }
 
     public void createCollision(Collider other, ContactCache contactCache) {
-        if (other.type == ColliderType.CUBE) {
-            createCollision((BoxCollider) other, contactCache);
-        } else if (other.type == ColliderType.SPHERE) {
-            createCollision((SphereCollider) other, contactCache);
+        switch (other.type) {
+            case CUBE:
+                createCollision((BoxCollider) other, contactCache);
+                break;
+            case SPHERE:
+                createCollision((SphereCollider) other, contactCache);
+                break;
+            case CAPSULE:
+                createCollision((CapsuleCollider) other, contactCache);
+                break;
+            default:
+                break;
         }
     }
 
@@ -85,7 +97,11 @@ public abstract class Collider {
 
     public abstract boolean intersectsWith(BoxCollider other);
 
+    public abstract boolean intersectsWith(CapsuleCollider other);
+
     public abstract void createCollision(SphereCollider other, ContactCache contactCache);
 
     public abstract void createCollision(BoxCollider other, ContactCache contactCache);
+
+    public abstract void createCollision(CapsuleCollider other, ContactCache contactCache);
 }

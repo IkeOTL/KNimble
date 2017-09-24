@@ -21,6 +21,7 @@ import com.kudodev.knimble.contact.ContactCache;
 import org.joml.Intersectionf;
 import org.joml.Matrix3f;
 import org.joml.Vector3f;
+import org.joml.Vector4f;
 
 /**
  *
@@ -71,17 +72,27 @@ public class SphereCollider extends Collider {
     }
 
     @Override
+    public boolean intersectsWith(CapsuleCollider other) {
+        return false;
+    }
+
+    @Override
+    public void createCollision(CapsuleCollider other, ContactCache contactCache) {
+
+    }
+
+    @Override
     public void createCollision(SphereCollider other, ContactCache contactCache) {
         Contact contact = contactCache.getContact();
 
         Vector3f pos0 = transform.getWorldPosition();
         Vector3f pos1 = other.transform.getWorldPosition();
 
-        contact.penetration = Intersection.getDistance(this, other);
+        contact.penetration = -Intersection.getDistance(this, other);
         contact.contactNormal.set(pos0).sub(pos1).normalize();
         contact.contactPoint.set(contact.contactNormal).mul(getRadius()).add(pos1);
 
-        contact.setBodyData((Rigidbody) this.rigidbody, (Rigidbody) other.rigidbody);
+        contact.setBodyData(this.rigidbody, other.rigidbody);
     }
 
     @Override
@@ -95,7 +106,7 @@ public class SphereCollider extends Collider {
 
         contact.contactNormal.set(pos).sub(closestPoint).normalize();
         contact.contactPoint.set(closestPoint);
-        contact.setBodyData((Rigidbody) this.rigidbody, (Rigidbody) other.rigidbody);
+        contact.setBodyData(this.rigidbody, other.rigidbody);
     }
 
 }

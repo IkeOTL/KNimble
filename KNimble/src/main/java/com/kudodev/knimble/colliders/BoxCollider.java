@@ -35,11 +35,12 @@ public class BoxCollider extends Collider {
     public BoxCollider(Rigidbody rigidbody, Vector3f halfExtents) {
         super(ColliderType.CUBE, rigidbody);
         this.extents = halfExtents;
+        transform.setScale(extents.x * 2, extents.y * 2, extents.z * 2);
+        updateInertiaTensor();
     }
 
     public BoxCollider(Rigidbody rigidbody) {
         this(rigidbody, new Vector3f(.5f));
-        updateInertiaTensor();
     }
 
     public BoxCollider() {
@@ -67,6 +68,16 @@ public class BoxCollider extends Collider {
         inertiaTensor.m11 = moment;
         inertiaTensor.m22 = moment;
         rigidbody.setInertiaTensor(inertiaTensor);
+    }
+
+    @Override
+    public boolean intersectsWith(CapsuleCollider other) {
+        return false;
+    }
+
+    @Override
+    public void createCollision(CapsuleCollider other, ContactCache contactCache) {
+
     }
 
     @Override
@@ -244,7 +255,7 @@ public class BoxCollider extends Collider {
         contact.penetration = penData.penetration;
         contact.contactNormal.set(axis);
         contact.contactPoint.set(vertex);
-        contact.setBodyData((Rigidbody) this.rigidbody, (Rigidbody) other.rigidbody);
+        contact.setBodyData(this.rigidbody, other.rigidbody);
     }
 
     private void testAxis(BoxCollider other, Vector3f distanceFromCenters, float x, float y, float z, int index, PenetrationData penetrationData) {
@@ -304,7 +315,7 @@ public class BoxCollider extends Collider {
 
         contact.contactNormal.set(normal);
         contact.penetration = pen;
-        contact.setBodyData((Rigidbody) one.rigidbody, (Rigidbody) two.rigidbody);
+        contact.setBodyData(one.rigidbody, two.rigidbody);
     }
 
     /**
