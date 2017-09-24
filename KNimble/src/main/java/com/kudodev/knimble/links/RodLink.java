@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.kudodev.knimble.constraints;
+package com.kudodev.knimble.links;
 
 import com.kudodev.knimble.Rigidbody;
 import com.kudodev.knimble.contact.Contact;
@@ -24,27 +24,27 @@ import org.joml.Vector3f;
  *
  * @author IkeOTL
  */
-public class RodConstraint extends Constraint {
+public class RodLink extends RigidbodyLink {
 
     private float length;
 
-    public RodConstraint(Rigidbody a, Rigidbody b, float length) {
+    public RodLink(Rigidbody a, Rigidbody b, float length) {
         super(a, b);
         this.length = length;
     }
 
-    public RodConstraint(Rigidbody a, Rigidbody b) {
+    public RodLink(Rigidbody a, Rigidbody b) {
         super(a, b);
         length = a.transform.getWorldPosition()
                 .distance(b.transform.getWorldPosition());
     }
 
     @Override
-    public void addContact(ContactCache cData) {
+    public void tick(ContactCache cData) {
         // Find the length of the rod
         Vector3f d = new Vector3f(rigidbodies[1].transform.getWorldPosition())
                 .sub(rigidbodies[0].transform.getWorldPosition());
-        
+
         float currentLength = d.length();
 
         // Check if we're over-extended

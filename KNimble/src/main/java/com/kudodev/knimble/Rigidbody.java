@@ -15,6 +15,9 @@
  */
 package com.kudodev.knimble;
 
+import com.kudodev.knimble.constraints.Constraint;
+import java.util.ArrayList;
+import java.util.List;
 import org.joml.Matrix3f;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
@@ -50,6 +53,8 @@ public class Rigidbody {
     protected Matrix3f inverseInertiaTensor = new Matrix3f();
     protected Matrix3f inverseInertiaTensorWorld = new Matrix3f();
 
+    private final List<Constraint> constraints = new ArrayList<>();
+
     // temp material data
     protected float friction = .9f;
     protected float restitution = .03f;
@@ -74,6 +79,9 @@ public class Rigidbody {
             return;
         }
 
+        for (int i = 0; i < constraints.size(); i++) {
+            constraints.get(i).tick(this, delta);
+        }
         // update linear velocity
         lastFrameLinearAcceleration.set(linearAcceleration);
         lastFrameLinearAcceleration.fma(inverseMass, linearForces);
@@ -125,6 +133,10 @@ public class Rigidbody {
             linearVelocity.set(0, 0, 0);
             angularVelocity.set(0, 0, 0);
         }
+    }
+
+    public void addConstraint(Constraint c) {
+        constraints.add(c);
     }
 
     public float getFriction() {
@@ -247,6 +259,16 @@ public class Rigidbody {
 
     public float getInverseMass() {
         return inverseMass;
+    }
+
+    public void addLinearForce(Vector3f force) {
+        linearForces.add(force);
+        awake = true;
+    }
+
+    public void addLinearForce(float x, float y, float z) {
+        linearForces.add(x, y, z);
+        awake = true;
     }
 
     public void setInertiaTensor(Matrix3f i) {

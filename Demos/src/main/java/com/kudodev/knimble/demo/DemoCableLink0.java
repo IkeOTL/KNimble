@@ -21,8 +21,9 @@ import com.kudodev.knimble.Rigidbody;
 import com.kudodev.knimble.colliders.BoxCollider;
 import com.kudodev.knimble.colliders.Collider;
 import com.kudodev.knimble.colliders.SphereCollider;
-import com.kudodev.knimble.constraints.Constraint;
-import com.kudodev.knimble.constraints.RodConstraint;
+import com.kudodev.knimble.links.CableLink;
+import com.kudodev.knimble.links.RigidbodyLink;
+import com.kudodev.knimble.links.RodLink;
 import com.kudodev.knimble.demo.utils.Mesh;
 import com.kudodev.knimble.demo.utils.Shape;
 import com.kudodev.knimble.demo.utils.ShapeUtils;
@@ -34,14 +35,14 @@ import org.joml.Vector3f;
  *
  * @author IkeOTL
  */
-public class DemoRodContraint0 extends RenderLoop {
+public class DemoCableLink0 extends RenderLoop {
 
-    public DemoRodContraint0(String title, PhysicsSpace physicsSpace) {
+    public DemoCableLink0(String title, PhysicsSpace physicsSpace) {
         super(title, physicsSpace);
     }
 
     public static void main(String[] args) throws Exception {
-        new DemoRodContraint0("Display Test", new PhysicsSpace()).start();
+        new DemoCableLink0("Display Test", new PhysicsSpace()).start();
     }
 
     Rigidbody r1;
@@ -51,7 +52,7 @@ public class DemoRodContraint0 extends RenderLoop {
         Mesh sphere = ShapeUtils.createSphereMesh(2);
         List<Shape> shapes = new ArrayList<>();
 
-        Rigidbody r0 = new Rigidbody(10000);
+        Rigidbody r0 = new Rigidbody(100);
         Collider c0 = new SphereCollider(r0, 2);
         Shape s0 = new Shape(sphere, c0);
         shapes.add(s0);
@@ -73,7 +74,7 @@ public class DemoRodContraint0 extends RenderLoop {
         shapes.add(s1);
         r1.getTransform().setPosition(0, 4, -15);
         r1.setLinearAcceleration(0, -9, 0);
-        r1.setLinearVelocity(-10f, 0, 0);
+        r1.setLinearVelocity(-5f, 0, 0);
         r1.setAngularVelocity(0, 0, 15);
 //        r1.getTransform().rotate((float) Math.toRadians(-90), new Vector3f(0, 1, 0));
         r1.getTransform().rotate((float) Math.toRadians(-45), new Vector3f(0, 0, 1));
@@ -85,9 +86,10 @@ public class DemoRodContraint0 extends RenderLoop {
         i0.getTransform().setPosition(0, 0, -10);
 //        shapes.add(new Shape(cube, i0));
 
-        Constraint con0 = new RodConstraint(r0, r1);
+        CableLink con0 = new CableLink(r0, r1);
+        con0.setRestitution(.8f);
 
-        physicsSpace.addConstraint(con0);
+        physicsSpace.addRigidbodyLink(con0);
 
         return shapes;
     }

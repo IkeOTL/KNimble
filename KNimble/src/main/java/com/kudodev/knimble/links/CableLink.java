@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.kudodev.knimble.constraints;
+package com.kudodev.knimble.links;
 
 import com.kudodev.knimble.Rigidbody;
 import com.kudodev.knimble.contact.Contact;
@@ -24,22 +24,22 @@ import org.joml.Vector3f;
  *
  * @author IkeOTL
  */
-public class CableConstraint extends Constraint {
+public class CableLink extends RigidbodyLink {
 
     private float length;
     private float restitution = 0;
 
-    public CableConstraint(Rigidbody a, Rigidbody b, float length, float restitution) {
+    public CableLink(Rigidbody a, Rigidbody b, float length, float restitution) {
         super(a, b);
         this.length = length;
         this.restitution = restitution;
     }
 
-    public CableConstraint(Rigidbody a, Rigidbody b, float length) {
+    public CableLink(Rigidbody a, Rigidbody b, float length) {
         this(a, b, length, 0);
     }
 
-    public CableConstraint(Rigidbody a, Rigidbody b) {
+    public CableLink(Rigidbody a, Rigidbody b) {
         super(a, b);
         length = a.transform.getWorldPosition()
                 .distance(b.transform.getWorldPosition());
@@ -50,7 +50,7 @@ public class CableConstraint extends Constraint {
     }
 
     @Override
-    public void addContact(ContactCache cData) {
+    public void tick(ContactCache cData) {
 
         // Calculate the length of the link
         Vector3f d = new Vector3f(rigidbodies[1].transform.getWorldPosition())

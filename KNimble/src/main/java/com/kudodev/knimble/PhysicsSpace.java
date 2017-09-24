@@ -17,8 +17,11 @@ package com.kudodev.knimble;
 
 import com.kudodev.knimble.colliders.Collider;
 import com.kudodev.knimble.constraints.Constraint;
+import com.kudodev.knimble.links.RigidbodyLink;
 import com.kudodev.knimble.contact.ContactCache;
 import com.kudodev.knimble.contact.ContactResolver;
+import com.kudodev.knimble.generators.ForceGenerator;
+import com.kudodev.knimble.generators.GravityForce;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -33,7 +36,8 @@ public class PhysicsSpace {
 
     private ContactCache contactCache = new ContactCache(256);
     private ContactResolver contactResolver = new ContactResolver();
-    private final List<Constraint> constraints = new ArrayList<>();
+    private final List<RigidbodyLink> rigidbodyLinks = new ArrayList<>();
+    private final List<ForceGenerator> forceGenerators = new ArrayList<>();
 
     private float frameAccum = 0;
     private float stepSize = 1f / 60f;
@@ -48,7 +52,13 @@ public class PhysicsSpace {
             frameAccum -= stepSize;
 
             for (int i = 0; i < rigidbodies.size(); i++) {
-                rigidbodies.get(i).integrate(stepSize);
+                Rigidbody r = rigidbodies.get(i);
+
+                for (int j = 0; j < forceGenerators.size(); j++) {
+                    forceGenerators.get(j).tick(r, stepSize);
+                }
+
+                r.integrate(stepSize);
             }
 
             outer:
@@ -74,11 +84,11 @@ public class PhysicsSpace {
                 }
             }
 
-            for (Constraint c : constraints) {
+            for (RigidbodyLink c : rigidbodyLinks) {
                 if (!contactCache.hasMoreContacts()) {
                     break;
                 }
-                c.addContact(contactCache);
+                c.tick(contactCache);
             }
 
             contactResolver.setIterations(contactCache.getContactCount() * 2);
@@ -100,7 +110,11 @@ public class PhysicsSpace {
         colliders.add(c);
     }
 
-    public void addConstraint(Constraint c) {
-        constraints.add(c);
+    public void addRigidbodyLink(RigidbodyLink c) {
+        rigidbodyLinks.add(c);
+    }
+
+    public void addForceGenerator(ForceGenerator g) {
+        forceGenerators.add(g);
     }
 }

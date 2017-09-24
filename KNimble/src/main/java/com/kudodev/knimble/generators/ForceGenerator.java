@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.kudodev.knimble.constraints;
+package com.kudodev.knimble.generators;
 
 import com.kudodev.knimble.Rigidbody;
 
@@ -21,7 +21,7 @@ import com.kudodev.knimble.Rigidbody;
  *
  * @author KudoD
  */
-public abstract class Constraint {
+public interface ForceGenerator {
 
-    public abstract void tick(Rigidbody rigidbody, float delta);
+    public abstract void tick(Rigidbody body, float delta);
 }
