@@ -15,7 +15,7 @@
  */
 package com.kudodev.knimble;
 
-import com.kudodev.knimble.constraints.Constraint;
+import com.kudodev.knimble.anchors.Constraint;
 import java.util.ArrayList;
 import java.util.List;
 import org.joml.Matrix3f;
@@ -30,15 +30,6 @@ public class Rigidbody {
 
     public final Transform transform;
 
-    private float mass = 0;
-    private float inverseMass = 0;
-    private float linearDamping = 0.99f;
-    private float angularDamping = 0.8f;
-
-    protected float sleepEpsilon = .5f;
-    private boolean awake = true;
-    protected float motion = sleepEpsilon * 2f;
-
     private final Vector3f angularVelocity = new Vector3f(0);
     private final Vector3f linearVelocity = new Vector3f(0);
 
@@ -49,17 +40,24 @@ public class Rigidbody {
     private final Vector3f angularForces = new Vector3f(0);
     private final Vector3f linearForces = new Vector3f(0);
 
-    protected Matrix3f inertiaTensor = new Matrix3f();
     protected Matrix3f inverseInertiaTensor = new Matrix3f();
     protected Matrix3f inverseInertiaTensorWorld = new Matrix3f();
 
-    private final List<Constraint> constraints = new ArrayList<>();
+    private final List<Constraint> anchors = new ArrayList<>();
+
+    private float mass = 0;
+    private float inverseMass = 0;
+    private float linearDamping = 0.99f;
+    private float angularDamping = 0.8f;
+
+    protected float sleepEpsilon = .0005f;
+    protected float motion = sleepEpsilon * 2f;
+    private boolean canSleep = true;
+    private boolean awake = true;
 
     // temp material data
     protected float friction = .9f;
     protected float restitution = .03f;
-
-    private boolean canSleep = true;
 
     public Rigidbody() {
         this.transform = new Transform();
@@ -79,8 +77,8 @@ public class Rigidbody {
             return;
         }
 
-        for (int i = 0; i < constraints.size(); i++) {
-            constraints.get(i).tick(this, delta);
+        for (int i = 0; i < anchors.size(); i++) {
+            anchors.get(i).tick(this, delta);
         }
         // update linear velocity
         lastFrameLinearAcceleration.set(linearAcceleration);
@@ -108,14 +106,14 @@ public class Rigidbody {
 
         // make sleep
         if (canSleep) {
-//            float currentMotion = linearVelocity.dot(linearVelocity) + angularVelocity.dot(angularVelocity);
-//            float bias = (float) Math.pow(0.5f, delta);
-//            motion = bias * motion + (1 - bias) * currentMotion;
-//            if (motion < sleepEpsilon) {
-//                setAwake(false);
-//            } else if (motion > 10 * sleepEpsilon) {
-//                motion = 10 * sleepEpsilon;
-//            }
+            float currentMotion = linearVelocity.dot(linearVelocity) + angularVelocity.dot(angularVelocity);
+            float bias = (float) Math.pow(0.5f, delta);
+            motion = bias * motion + (1 - bias) * currentMotion;
+            if (motion < sleepEpsilon) {
+                setAwake(false);
+            } else if (motion > 10 * sleepEpsilon) {
+                motion = 10 * sleepEpsilon;
+            }
         }
     }
 
@@ -136,7 +134,7 @@ public class Rigidbody {
     }
 
     public void addConstraint(Constraint c) {
-        constraints.add(c);
+        anchors.add(c);
     }
 
     public float getFriction() {
@@ -273,7 +271,6 @@ public class Rigidbody {
 
     public void setInertiaTensor(Matrix3f i) {
         i.invert(inverseInertiaTensor);
-        this.inertiaTensor.set(i);
         calculateIITWorld();
     }
 

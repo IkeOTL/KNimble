@@ -16,12 +16,10 @@
 package com.kudodev.knimble;
 
 import com.kudodev.knimble.colliders.Collider;
-import com.kudodev.knimble.constraints.Constraint;
 import com.kudodev.knimble.links.RigidbodyLink;
 import com.kudodev.knimble.contact.ContactCache;
 import com.kudodev.knimble.contact.ContactResolver;
 import com.kudodev.knimble.generators.ForceGenerator;
-import com.kudodev.knimble.generators.GravityForce;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -31,16 +29,16 @@ import java.util.List;
  */
 public class PhysicsSpace {
 
-    private List<Rigidbody> rigidbodies = new ArrayList<>();
-    private List<Collider> colliders = new ArrayList<>();
+    private final List<Rigidbody> rigidbodies = new ArrayList<>();
+    private final List<Collider> colliders = new ArrayList<>();
 
-    private ContactCache contactCache = new ContactCache(256);
-    private ContactResolver contactResolver = new ContactResolver();
+    private final ContactCache contactCache = new ContactCache(256);
+    private final ContactResolver contactResolver = new ContactResolver();
     private final List<RigidbodyLink> rigidbodyLinks = new ArrayList<>();
     private final List<ForceGenerator> forceGenerators = new ArrayList<>();
 
     private float frameAccum = 0;
-    private float stepSize = 1f / 60f;
+    private final float stepSize = 1f / 60f;
 
     public void tick(float delta) {
         frameAccum += delta;

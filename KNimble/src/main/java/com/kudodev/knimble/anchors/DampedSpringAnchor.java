@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.kudodev.knimble.constraints;
+package com.kudodev.knimble.anchors;
 
 import com.kudodev.knimble.Rigidbody;
 import org.joml.Vector3f;
@@ -22,14 +22,14 @@ import org.joml.Vector3f;
  *
  * @author IkeOTL
  */
-public class DampedSpringConstraint extends Constraint {
+public class DampedSpringAnchor extends Constraint {
 
     private Vector3f anchor;
 
     private float springConstant;
     private float damping;
 
-    public DampedSpringConstraint(Rigidbody rigidbody, Vector3f anchor, float springConstant, float damping) {
+    public DampedSpringAnchor(Rigidbody rigidbody, Vector3f anchor, float springConstant, float damping) {
         this.springConstant = springConstant;
         this.damping = damping;
         this.anchor = anchor;

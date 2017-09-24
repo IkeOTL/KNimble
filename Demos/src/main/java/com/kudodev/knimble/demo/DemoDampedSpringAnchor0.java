@@ -20,26 +20,27 @@ import com.kudodev.knimble.PhysicsSpace;
 import com.kudodev.knimble.Rigidbody;
 import com.kudodev.knimble.colliders.Collider;
 import com.kudodev.knimble.colliders.SphereCollider;
-import com.kudodev.knimble.links.RigidbodyLink;
-import com.kudodev.knimble.links.RodLink;
+import com.kudodev.knimble.anchors.DampedSpringAnchor;
 import com.kudodev.knimble.demo.utils.Mesh;
 import com.kudodev.knimble.demo.utils.Shape;
 import com.kudodev.knimble.demo.utils.ShapeUtils;
+import com.kudodev.knimble.generators.GravityForce;
 import java.util.ArrayList;
 import java.util.List;
+import org.joml.Vector3f;
 
 /**
  *
  * @author IkeOTL
  */
-public class DemoRodLink0 extends RenderLoop {
+public class DemoDampedSpringAnchor0 extends RenderLoop {
 
-    public DemoRodLink0(String title, PhysicsSpace physicsSpace) {
+    public DemoDampedSpringAnchor0(String title, PhysicsSpace physicsSpace) {
         super(title, physicsSpace);
     }
 
     public static void main(String[] args) throws Exception {
-        new DemoRodLink0("Demo: Rod Link", new PhysicsSpace()).start();
+        new DemoDampedSpringAnchor0("Demo: Damped Spring Anchor", new PhysicsSpace()).start();
     }
 
     @Override
@@ -47,27 +48,18 @@ public class DemoRodLink0 extends RenderLoop {
         Mesh sphere = ShapeUtils.createSphereMesh(2);
         List<Shape> shapes = new ArrayList<>();
 
-        Rigidbody r0 = new Rigidbody(100);
+        Rigidbody r0 = new Rigidbody(1);
         Collider c0 = new SphereCollider(r0, 2);
         Shape s0 = new Shape(sphere, c0);
         shapes.add(s0);
         s0.getColor().set(1, 0, 0, 1);
-        r0.getTransform().setPosition(0, 0f, -15f);
+        r0.getTransform().setPosition(0, 5f, -15f);
         physicsSpace.addBody(r0, c0);
 
-        Rigidbody r1 = new Rigidbody(1);
-        Collider c1 = new SphereCollider(r1, .5f);
-        Shape s1 = new Shape(sphere, c1);
-        s1.getColor().set(0, 0, 1, 1);
-        shapes.add(s1);
-        r1.getTransform().setPosition(0, 4, -15);
-        r1.setLinearAcceleration(0, -9, 0);
-        r1.setLinearVelocity(-10f, 0, 0);
-        r1.setAngularVelocity(0, 0, 15);
-        physicsSpace.addBody(r1, c1);
+        DampedSpringAnchor con0 = new DampedSpringAnchor(r0, new Vector3f(0, 5f, -15f), 5f, 2f);
+        r0.addConstraint(con0);
 
-        RigidbodyLink con0 = new RodLink(r0, r1);
-        physicsSpace.addRigidbodyLink(con0);
+        physicsSpace.addForceGenerator(new GravityForce(0, -9, 0));
 
         return shapes;
     }

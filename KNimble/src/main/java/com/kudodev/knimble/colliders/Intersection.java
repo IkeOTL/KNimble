@@ -16,7 +16,6 @@
 package com.kudodev.knimble.colliders;
 
 import com.kudodev.knimble.JOMLExtra;
-import org.joml.Intersectionf;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 
@@ -24,7 +23,7 @@ import org.joml.Vector3f;
  *
  * @author IkeOTL
  */
-public class Intersection {
+class Intersection {
 
     public static float getDistanceSq(SphereCollider a, SphereCollider b) {
         float distSq = a.transform.getWorldPosition()
@@ -47,10 +46,10 @@ public class Intersection {
 
     public static Vector3f getClosestPoint(BoxCollider b, Vector3f p, Vector3f out) {
         // Start result at center of box; make steps from there
-        out.set(b.getTransform().getWorldPosition());
+        out.set(b.transform.getWorldPosition());
         Vector3f distance = new Vector3f(p).sub(out);
 
-        Matrix4f m = b.getTransform().getTransMatrix();
+        Matrix4f m = b.transform.getTransMatrix();
         Vector3f axis = new Vector3f();
         for (int i = 0; i < 3; i++) {
             JOMLExtra.getColumn(m, i, axis);
@@ -73,10 +72,10 @@ public class Intersection {
     }
 
     public static float getDistanceSq(BoxCollider b, Vector3f p) {
-        Vector3f v = new Vector3f(p).sub(b.getTransform().getWorldPosition());
+        Vector3f v = new Vector3f(p).sub(b.transform.getWorldPosition());
         float sqDist = 0.0f;
 
-        Matrix4f m = b.getTransform().getTransMatrix();
+        Matrix4f m = b.transform.getTransMatrix();
         Vector3f axis = new Vector3f();
         for (int i = 0; i < 3; i++) {
             JOMLExtra.getColumn(m, i, axis);

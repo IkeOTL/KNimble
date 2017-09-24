@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.kudodev.knimble.constraints;
+package com.kudodev.knimble.anchors;
 
 import com.kudodev.knimble.Rigidbody;
 import org.joml.Vector3f;
@@ -22,14 +22,14 @@ import org.joml.Vector3f;
  *
  * @author IkeOTL
  */
-public class BungeeConstraint extends Constraint {
+public class BungeeAnchor extends Constraint {
 
     private Vector3f anchor;
 
     private float springConstant;
     private float restLength;
 
-    public BungeeConstraint(Rigidbody rigidbody, Vector3f anchor, float springConstant, float restLength) {
+    public BungeeAnchor(Rigidbody rigidbody, Vector3f anchor, float springConstant, float restLength) {
         this.springConstant = springConstant;
         this.restLength = restLength;
         this.anchor = anchor;

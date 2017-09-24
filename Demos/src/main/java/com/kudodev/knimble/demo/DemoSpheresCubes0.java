@@ -39,10 +39,8 @@ public class DemoSpheresCubes0 extends RenderLoop {
     }
 
     public static void main(String[] args) throws Exception {
-        new DemoSpheresCubes0("Display Test", new PhysicsSpace()).start();
+        new DemoSpheresCubes0("Demo: Sphere/Cube Collision", new PhysicsSpace()).start();
     }
-
-    Rigidbody r1;
 
     @Override
     protected List<Shape> initShapes(PhysicsSpace physicsSpace) {
@@ -57,43 +55,23 @@ public class DemoSpheresCubes0 extends RenderLoop {
         shapes.add(s0);
         s0.getColor().set(1, 0, 0, 1);
         r0.setAngularVelocity(0, 0, 15);
-//        r1.getTransform().setPosition(0, 0, -5);
         r0.getTransform().setPosition(-0, .3f, -5f);
-        r0.setLinearVelocity(.0f, 0, 0);
-//        r0.setAngularVelocity(0, 0, 10);
-//        r1.addLinearAcceleration(.5f, 0, 0);
-//        r1.getTransform().rotate((float) Math.toRadians(5), new Vector3f(0, 1, 0));
-//        r0.getTransform().rotate((float) Math.toRadians(45), new Vector3f(0, 1, 0));
         physicsSpace.addBody(r0, c0);
 
-        r1 = new Rigidbody(100);
+        Rigidbody r1 = new Rigidbody(100);
         Collider c1 = new BoxCollider(r1);
         Shape s1 = new Shape(cube, c1);
         s1.getColor().set(0, 0, 1, 1);
         shapes.add(s1);
         r1.getTransform().setPosition(2f, 0, -5);
         r1.setLinearVelocity(-1f, 0, 0);
-//        r1.setAngularVelocity(0, 0, 15);
         r1.getTransform().rotate((float) Math.toRadians(-45), new Vector3f(0, 1, 0));
-//        r1.getTransform().rotate((float) Math.toRadians(-45), new Vector3f(0, 0, 1));
         physicsSpace.addBody(r1, c1);
-
-        // idle boxes
-        Collider i0 = new BoxCollider();
-        i0.getTransform().setScale(10, 10, 1);
-        i0.getTransform().setPosition(0, 0, -10);
-//        shapes.add(new Shape(cube, i0));
 
         return shapes;
     }
 
-    float time = 0;
-
     @Override
     protected void update(float delta) {
-        time += delta;
-        if (time >= 20) {
-//            r1.getTransform().setPosition(0, 3, -5);
-        }
     }
 }
