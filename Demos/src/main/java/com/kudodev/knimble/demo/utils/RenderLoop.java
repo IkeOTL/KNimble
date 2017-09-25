@@ -49,7 +49,8 @@ public abstract class RenderLoop {
     private boolean wireframe = true;
 
     private final String title;
-    private final PhysicsSpace physicsSpace;
+    protected final PhysicsSpace physicsSpace;
+    protected List<Shape> shapes;
 
     public RenderLoop(String title, PhysicsSpace physicsSpace) {
         this.title = title;
@@ -73,7 +74,7 @@ public abstract class RenderLoop {
         Matrix4f viewMat = new Matrix4f();
         Matrix4f projViewMat = new Matrix4f();
 
-        List<Shape> shapes = init(physicsSpace);
+        shapes = init(physicsSpace);
 
         lastFrame = System.nanoTime();
         float delta;

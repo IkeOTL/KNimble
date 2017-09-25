@@ -94,8 +94,8 @@ public class Contact {
     }
 
     public void setBodyData(Rigidbody a, Rigidbody b, float friction, float restitution) {
-        body[0] = a;
-        body[1] = b;
+        body[0] = a.getMass() > 0 ? a : null;
+        body[1] = b.getMass() > 0 ? b : null;
         this.friction = friction;
         this.restitution = restitution;
     }

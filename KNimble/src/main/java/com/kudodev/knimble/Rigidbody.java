@@ -80,6 +80,7 @@ public class Rigidbody {
         for (int i = 0; i < anchors.size(); i++) {
             anchors.get(i).tick(this, delta);
         }
+
         // update linear velocity
         lastFrameLinearAcceleration.set(linearAcceleration);
         lastFrameLinearAcceleration.fma(inverseMass, linearForces);
@@ -279,6 +280,12 @@ public class Rigidbody {
     }
 
     public void calculateIITWorld() {
+        if (getMass() <= 0) {
+            inverseInertiaTensor.identity();
+            inverseInertiaTensorWorld.identity();
+            return;
+        }
+
         Matrix4f trans = transform.getTransMatrix();
         float t4 = trans.m00() * inverseInertiaTensor.m00() + trans.m01() * inverseInertiaTensor.m10() + trans.m02() * inverseInertiaTensor.m20();
         float t9 = trans.m00() * inverseInertiaTensor.m01() + trans.m01() * inverseInertiaTensor.m11() + trans.m02() * inverseInertiaTensor.m21();
