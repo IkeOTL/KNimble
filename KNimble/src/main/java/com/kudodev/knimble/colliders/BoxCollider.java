@@ -35,7 +35,6 @@ public class BoxCollider extends Collider {
     public BoxCollider(Rigidbody rigidbody, Vector3f halfExtents) {
         super(ColliderType.CUBE, rigidbody);
         this.extents = halfExtents;
-        transform.setScale(extents.x * 2, extents.y * 2, extents.z * 2);
         updateInertiaTensor();
     }
 
@@ -62,11 +61,11 @@ public class BoxCollider extends Collider {
         }
 
         Matrix3f inertiaTensor = new Matrix3f();
-        float moment = 0.333f * rigidbody.getMass() * (.5f * .5f + .5f * .5f);
+        float mass = rigidbody.getMass();
         inertiaTensor.identity();
-        inertiaTensor.m00 = moment;
-        inertiaTensor.m11 = moment;
-        inertiaTensor.m22 = moment;
+        inertiaTensor.m00 = 0.333f * mass * (extents.y * extents.y + extents.z * extents.z);
+        inertiaTensor.m11 = 0.333f * mass * (extents.x * extents.x + extents.z * extents.z);
+        inertiaTensor.m22 = 0.333f * mass * (extents.x * extents.x + extents.y * extents.y);
         rigidbody.setInertiaTensor(inertiaTensor);
     }
 
@@ -150,7 +149,7 @@ public class BoxCollider extends Collider {
         Vector3f toCenter = new Vector3f(other.transform.getWorldPosition()).sub(transform.getWorldPosition());
         PenetrationData penData = new PenetrationData();
         penData.penetration = Float.MAX_VALUE;
-        penData.bestAxis = -1;
+        penData.bestAxis = 0xFFFFF;
 
         // Now we check each axes, returning if it gives us
         // a separating axis, and keeping track of the axis with
@@ -180,7 +179,7 @@ public class BoxCollider extends Collider {
         testAxis(other, toCenter, m.m21() * o.m22() - m.m22() * o.m21(), m.m22() * o.m20() - m.m20() * o.m22(), m.m20() * o.m21() - m.m21() * o.m20(), 14, penData);
 
         // Make sure we've got a result.
-        if (penData.bestAxis == -1) {
+        if (penData.bestAxis == 0xFFFFF) {
             return;
         }
 

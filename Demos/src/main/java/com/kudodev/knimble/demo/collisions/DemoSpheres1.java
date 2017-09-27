@@ -22,7 +22,7 @@ import com.kudodev.knimble.colliders.Collider;
 import com.kudodev.knimble.colliders.SphereCollider;
 import com.kudodev.knimble.demo.utils.Mesh;
 import com.kudodev.knimble.demo.utils.Shape;
-import com.kudodev.knimble.demo.utils.ShapeUtils;
+import com.kudodev.knimble.demo.utils.shapes.ShapeUtils;
 import java.util.ArrayList;
 import java.util.List;
 

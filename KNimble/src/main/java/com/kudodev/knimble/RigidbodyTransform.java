@@ -23,45 +23,40 @@ import org.joml.Vector3f;
  *
  * @author IkeOTL
  */
-public class Transform {
+public class RigidbodyTransform {
 
-    protected Transform parent = null;
+    protected RigidbodyTransform parent = null;
 
     public final Vector3f position;
-    public final Vector3f scale;
     public final Quaternionf rotation;
 
-    private final Vector3f worldPosition = new Vector3f();
-    private final Vector3f worldScale = new Vector3f();
+    private final Vector3f worldPosition = new Vector3f(0);
     private final Quaternionf worldRotation = new Quaternionf();
 
     private boolean isDirty;
     private final Matrix4f transMatrix = new Matrix4f();
 
-    public Transform() {
-        this(new Vector3f(0), new Quaternionf(), new Vector3f(1));
+    public RigidbodyTransform() {
+        this(new Vector3f(0), new Quaternionf());
     }
 
-    public Transform(Transform t) {
-        this(new Vector3f(t.position),
-                new Quaternionf(t.rotation),
-                new Vector3f(t.scale));
+    public RigidbodyTransform(RigidbodyTransform t) {
+        this(new Vector3f(t.position), new Quaternionf(t.rotation));
     }
 
-    public Transform(Vector3f p) {
-        this(p, new Quaternionf(), new Vector3f(1));
+    public RigidbodyTransform(Vector3f p) {
+        this(p, new Quaternionf());
     }
 
-    public Transform(Vector3f p, Quaternionf r, Vector3f s) {
+    public RigidbodyTransform(Vector3f p, Quaternionf r) {
         position = p;
         rotation = r;
-        scale = s;
-        updateTransMatrix();
+        updateTransform();
     }
 
     public Matrix4f getTransMatrix() {
         if (isDirty) {
-            updateTransMatrix();
+            updateTransform();
             isDirty = false;
         }
         return transMatrix;
@@ -76,11 +71,6 @@ public class Transform {
         isDirty = true;
     }
 
-    public void setScale(float x, float y, float z) {
-        scale.set(x, y, z);
-        isDirty = true;
-    }
-
     public void rotate(float f, Vector3f v) {
         rotation.rotateAxis(f, v);
         isDirty = true;
@@ -88,33 +78,25 @@ public class Transform {
 
     public Vector3f getWorldPosition() {
         if (isDirty) {
-            updateTransMatrix();
+            updateTransform();
             isDirty = false;
         }
         return worldPosition;
     }
 
-    public Vector3f getWorldScale() {
-        if (isDirty) {
-            updateTransMatrix();
-            isDirty = false;
-        }
-        return worldScale;
-    }
-
     public Quaternionf getWorldRotation() {
         if (isDirty) {
-            updateTransMatrix();
+            updateTransform();
             isDirty = false;
         }
         return worldRotation;
     }
 
-    public void setParent(Transform parent) {
+    public void setParent(RigidbodyTransform parent) {
         this.parent = parent;
     }
 
-    private void updateTransMatrix() {
+    private void updateTransform() {
         if (parent != null) {
             worldPosition.set(position);
             worldPosition.mulPosition(parent.getTransMatrix());
@@ -122,16 +104,23 @@ public class Transform {
             worldRotation.set(parent.worldRotation);
             worldRotation.mul(rotation);
 
-            worldScale.set(parent.worldScale);
-            worldScale.mul(scale);
+//            worldScale.set(parent.worldScale);
+//            worldScale.mul(scale);
+            transMatrix.translationRotateScale(
+                    worldPosition.x(), worldPosition.y(), worldPosition.z(),
+                    worldRotation.x(), worldRotation.y(), worldRotation.z(), worldRotation.w(),
+                    1, 1, 1); // scaled mat4s ruin collision math
 
-            transMatrix.translationRotateScale(worldPosition, worldRotation, worldScale);
             parent.getTransMatrix().mul(transMatrix, transMatrix);
         } else {
             worldPosition.set(position);
             worldRotation.set(rotation);
-            worldScale.set(scale);
-            transMatrix.translationRotateScale(worldPosition, worldRotation, worldScale);
+//            worldScale.set(scale);
+
+            transMatrix.translationRotateScale(
+                    worldPosition.x(), worldPosition.y(), worldPosition.z(),
+                    worldRotation.x(), worldRotation.y(), worldRotation.z(), worldRotation.w(),
+                    1, 1, 1); // scaled mat4s ruin collision math
         }
     }
 }

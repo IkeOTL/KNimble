@@ -28,7 +28,7 @@ import org.joml.Vector3f;
  */
 public class Rigidbody {
 
-    public final Transform transform;
+    public final RigidbodyTransform transform;
 
     private final Vector3f angularVelocity = new Vector3f(0);
     private final Vector3f linearVelocity = new Vector3f(0);
@@ -50,7 +50,7 @@ public class Rigidbody {
     private float linearDamping = 0.99f;
     private float angularDamping = 0.8f;
 
-    protected float sleepEpsilon = .0005f;
+    protected float sleepEpsilon = .001f;
     protected float motion = sleepEpsilon * 2f;
     private boolean canSleep = true;
     private boolean awake = true;
@@ -60,7 +60,7 @@ public class Rigidbody {
     protected float restitution = .03f;
 
     public Rigidbody() {
-        this.transform = new Transform();
+        this.transform = new RigidbodyTransform();
     }
 
     public Rigidbody(float mass) {
@@ -68,8 +68,9 @@ public class Rigidbody {
         setMass(mass);
     }
 
-    public Rigidbody(Transform transform) {
-        this.transform = transform;
+    public Rigidbody(RigidbodyTransform transform, float mass) {
+        this(mass);
+        this.transform.setParent(transform);
     }
 
     public void integrate(float delta) {
@@ -154,7 +155,7 @@ public class Rigidbody {
         this.restitution = restitution;
     }
 
-    public Transform getTransform() {
+    public RigidbodyTransform getTransform() {
         return transform;
     }
 

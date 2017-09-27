@@ -82,7 +82,7 @@ public class CapsuleCollider extends Collider {
 
         Vector3f closestPoint = Intersectionf.findClosestPointOnLineSegment(a.x, a.y, a.z, b.x, b.y, b.z, otherPos.x, otherPos.y, otherPos.z, new Vector3f());
 
-        float distSq = closestPoint.distanceSquared(otherPos) - (other.getRadius() + radius) * (other.getRadius() + radius);
+        float distSq = closestPoint.distanceSquared(otherPos) - (other.radius + radius) * (other.radius + radius);
 
         return distSq <= 0;
     }
@@ -99,7 +99,7 @@ public class CapsuleCollider extends Collider {
         Vector3f closestPoint = Intersectionf.findClosestPointOnLineSegment(a.x, a.y, a.z, b.x, b.y, b.z, otherPos.x, otherPos.y, otherPos.z, new Vector3f());
 
         Contact contact = contactCache.getContact();
-        contact.penetration = -(closestPoint.distance(otherPos) - (other.getRadius() + radius));
+        contact.penetration = -(closestPoint.distance(otherPos) - (other.radius + radius));
         contact.contactNormal.set(closestPoint).sub(otherPos).normalize();
         contact.contactPoint.set(contact.contactNormal).mul(radius).add(closestPoint);
         contact.setBodyData(this.rigidbody, other.rigidbody);

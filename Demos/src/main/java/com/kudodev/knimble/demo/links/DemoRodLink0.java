@@ -24,7 +24,7 @@ import com.kudodev.knimble.links.RigidbodyLink;
 import com.kudodev.knimble.links.RodLink;
 import com.kudodev.knimble.demo.utils.Mesh;
 import com.kudodev.knimble.demo.utils.Shape;
-import com.kudodev.knimble.demo.utils.ShapeUtils;
+import com.kudodev.knimble.demo.utils.shapes.ShapeUtils;
 import java.util.ArrayList;
 import java.util.List;
 

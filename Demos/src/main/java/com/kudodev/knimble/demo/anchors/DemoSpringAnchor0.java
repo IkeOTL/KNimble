@@ -24,7 +24,7 @@ import com.kudodev.knimble.anchors.Constraint;
 import com.kudodev.knimble.anchors.SpringAnchor;
 import com.kudodev.knimble.demo.utils.Mesh;
 import com.kudodev.knimble.demo.utils.Shape;
-import com.kudodev.knimble.demo.utils.ShapeUtils;
+import com.kudodev.knimble.demo.utils.shapes.ShapeUtils;
 import com.kudodev.knimble.generators.GravityForce;
 import java.util.ArrayList;
 import java.util.List;

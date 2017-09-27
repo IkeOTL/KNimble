@@ -79,6 +79,7 @@ public abstract class RenderLoop {
         lastFrame = System.nanoTime();
         float delta;
         long newTime;
+        Matrix4f modelMat = new Matrix4f();
         while (!glfwWindowShouldClose(window)) {
             newTime = System.nanoTime();
             delta = (newTime - lastFrame) / 1000000000f;
@@ -102,11 +103,10 @@ public abstract class RenderLoop {
 
             camera.getViewMatrix(viewMat);
             shaderProgram.setUniform("projViewMat", projMat.mul(viewMat, projViewMat));
-
-            for (Shape r : shapes) {
-                shaderProgram.setUniform("modelMat", r.getCollider().getTransform().getTransMatrix());
-                shaderProgram.setUniform("outColor", r.getColor());
-                r.getMesh().render();
+            for (Shape s : shapes) {
+                shaderProgram.setUniform("modelMat", s.getTransMatrix(modelMat));
+                shaderProgram.setUniform("outColor", s.getColor());
+                s.getMesh().render();
             }
 
             shaderProgram.unbind();

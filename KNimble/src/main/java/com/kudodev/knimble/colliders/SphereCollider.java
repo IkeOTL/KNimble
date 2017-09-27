@@ -18,10 +18,8 @@ package com.kudodev.knimble.colliders;
 import com.kudodev.knimble.Rigidbody;
 import com.kudodev.knimble.contact.Contact;
 import com.kudodev.knimble.contact.ContactCache;
-import org.joml.Intersectionf;
 import org.joml.Matrix3f;
 import org.joml.Vector3f;
-import org.joml.Vector4f;
 
 /**
  *
@@ -29,18 +27,16 @@ import org.joml.Vector4f;
  */
 public class SphereCollider extends Collider {
 
+    protected float radius = .5f;
+
     public SphereCollider(Rigidbody rigidbody) {
         this(rigidbody, 0.5f);
     }
 
     public SphereCollider(Rigidbody rigidbody, float radius) {
         super(ColliderType.SPHERE, rigidbody);
-        transform.setScale(radius * 2, radius * 2, radius * 2);
+        this.radius = radius;
         updateInertiaTensor();
-    }
-
-    public float getRadius() {
-        return .5f * transform.getWorldScale().x;
     }
 
     @Override
@@ -49,7 +45,6 @@ public class SphereCollider extends Collider {
             return;
         }
 
-        float radius = getRadius();
         float moment = .4f * rigidbody.getMass() * (radius * radius);
         Matrix3f inertiaTensor = new Matrix3f();
         inertiaTensor.identity();
@@ -59,6 +54,10 @@ public class SphereCollider extends Collider {
         rigidbody.setInertiaTensor(inertiaTensor);
     }
 
+    public float getRadius() {
+        return radius;
+    }
+
     @Override
     public boolean intersectsWith(SphereCollider other) {
         return Intersection.getDistanceSq(this, other) <= 0;
@@ -66,7 +65,6 @@ public class SphereCollider extends Collider {
 
     @Override
     public boolean intersectsWith(BoxCollider other) {
-        float radius = getRadius();
         return Intersection.getDistanceSq(other, transform.getWorldPosition())
                 <= radius * radius;
     }
@@ -90,7 +88,7 @@ public class SphereCollider extends Collider {
 
         contact.penetration = -Intersection.getDistance(this, other);
         contact.contactNormal.set(pos0).sub(pos1).normalize();
-        contact.contactPoint.set(contact.contactNormal).mul(getRadius()).add(pos1);
+        contact.contactPoint.set(contact.contactNormal).mul(radius).add(pos1);
 
         contact.setBodyData(this.rigidbody, other.rigidbody);
     }
@@ -101,7 +99,6 @@ public class SphereCollider extends Collider {
 
         Vector3f closestPoint = new Vector3f();
         Vector3f pos = transform.getWorldPosition();
-        float radius = getRadius();
         contact.penetration = radius * radius - Intersection.getDistanceSq(other, pos, closestPoint);
 
         contact.contactNormal.set(pos).sub(closestPoint).normalize();

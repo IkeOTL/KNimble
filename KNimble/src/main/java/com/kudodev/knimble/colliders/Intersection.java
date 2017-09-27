@@ -34,14 +34,14 @@ class Intersection {
     public static float getDistanceSq(SphereCollider a, SphereCollider b) {
         float distSq = a.transform.getWorldPosition()
                 .distanceSquared(b.transform.getWorldPosition());
-        float radiusA = a.getRadius();
-        float radiusB = b.getRadius();
+        float radiusA = a.radius;
+        float radiusB = b.radius;
         return distSq - (radiusA + radiusB) * (radiusA + radiusB);
     }
 
     public static float getDistance(SphereCollider a, SphereCollider b) {
         float dist = a.transform.getWorldPosition().distance(b.transform.getWorldPosition());
-        return dist - (a.getRadius() + b.getRadius());
+        return dist - (a.radius + b.radius);
     }
 
     public static float getDistanceSq(BoxCollider b, Vector3f p, Vector3f out) {

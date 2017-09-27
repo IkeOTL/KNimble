@@ -1,3 +1,5 @@
+package com.kudodev.knimble.demo.utils;
+
 /*
  * Copyright 2017 KudoDev.
  *
@@ -13,9 +15,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.kudodev.knimble.demo.utils;
-
+import com.kudodev.knimble.colliders.BoxCollider;
 import com.kudodev.knimble.colliders.Collider;
+import com.kudodev.knimble.colliders.SphereCollider;
+import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import org.joml.Vector4f;
 
@@ -44,5 +47,22 @@ public class Shape {
 
     public Vector4f getColor() {
         return color;
+    }
+
+    public Matrix4f getTransMatrix(Matrix4f out) {
+        out.set(collider.getTransform().getTransMatrix());
+
+        // Since we are using unit sized sphere/cubes we need to scale the mesh.
+        // But RigidbodyTransform doesn't hold scalling data, so we calculate scale
+        // based on collider attributes
+        if (collider instanceof BoxCollider) {
+            Vector3f v = ((BoxCollider) collider).getExtents();
+            out.scale(v.x * 2, v.y * 2, v.z * 2);
+        } else if (collider instanceof SphereCollider) {
+            float r = ((SphereCollider) collider).getRadius();
+            out.scale(r * 2, r * 2, r * 2);
+        }
+
+        return out;
     }
 }

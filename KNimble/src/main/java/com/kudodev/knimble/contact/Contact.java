@@ -16,7 +16,7 @@
 package com.kudodev.knimble.contact;
 
 import com.kudodev.knimble.Rigidbody;
-import com.kudodev.knimble.Transform;
+import com.kudodev.knimble.RigidbodyTransform;
 import org.joml.Matrix3f;
 import org.joml.Vector3f;
 
@@ -411,7 +411,7 @@ public class Contact {
             // along the contact normal.
             linearChange[i].set(contactNormal).mul(linearMove[i]);
 
-            Transform transform = body[i].getTransform();
+            RigidbodyTransform transform = body[i].getTransform();
 
             transform.rotation.integrate(1, angularChange[i].x, angularChange[i].y, angularChange[i].z);
 
