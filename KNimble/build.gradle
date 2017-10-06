@@ -9,3 +9,10 @@ project.ext.jomlVersion = '1.9.4'
 dependencies {  
     compile "org.joml:joml:${jomlVersion}"
 }
+
+apply plugin: 'java-library-distribution'
+distributions {
+    main{
+        baseName = 'KNimble'
+    }
+}

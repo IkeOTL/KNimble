@@ -23,9 +23,9 @@ import org.joml.Vector3f;
  *
  * @author IkeOTL
  */
-public class RigidbodyTransform {
+public class RigidbodyTransform implements Transform {
 
-    private RigidbodyTransform parent = null;
+    private Transform parent = null;
 
     private final Vector3f position;
     private final Quaternionf rotation;
@@ -54,6 +54,7 @@ public class RigidbodyTransform {
         updateTransform();
     }
 
+    @Override
     public Matrix4f getTransMatrix() {
         if (isDirty) {
             updateTransform();
@@ -62,6 +63,7 @@ public class RigidbodyTransform {
         return transMatrix;
     }
 
+    @Override
     public void setDirty() {
         isDirty = true;
     }
@@ -71,12 +73,19 @@ public class RigidbodyTransform {
         isDirty = true;
     }
 
+    @Override
     public Vector3f getLocalPosition() {
         return position;
     }
 
+    @Override
     public Quaternionf getLocalRotation() {
         return rotation;
+    }
+
+    @Override
+    public Vector3f getLocalScale() {
+        return null;
     }
 
     public void rotate(float f, Vector3f v) {
@@ -84,6 +93,7 @@ public class RigidbodyTransform {
         isDirty = true;
     }
 
+    @Override
     public Vector3f getWorldPosition() {
         if (isDirty) {
             updateTransform();
@@ -92,6 +102,7 @@ public class RigidbodyTransform {
         return worldPosition;
     }
 
+    @Override
     public Quaternionf getWorldRotation() {
         if (isDirty) {
             updateTransform();
@@ -100,6 +111,12 @@ public class RigidbodyTransform {
         return worldRotation;
     }
 
+    @Override
+    public Vector3f getWorldScale() {
+        return null;
+    }
+
+    @Override
     public void setParent(RigidbodyTransform parent) {
         this.parent = parent;
     }
@@ -109,7 +126,7 @@ public class RigidbodyTransform {
             worldPosition.set(position);
             worldPosition.mulPosition(parent.getTransMatrix());
 
-            worldRotation.set(parent.worldRotation);
+            worldRotation.set(parent.getWorldRotation());
             worldRotation.mul(rotation);
 
 //            worldScale.set(parent.worldScale);
