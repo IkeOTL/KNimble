@@ -29,9 +29,9 @@ public abstract class Collider {
         SPHERE, CUBE, CAPSULE
     };
 
-    protected final ColliderType type;
-    protected final Rigidbody rigidbody;
-    protected final RigidbodyTransform transform;
+    private final ColliderType type;
+    private final Rigidbody rigidbody;
+    private final RigidbodyTransform transform;
 
     public Collider(ColliderType type, RigidbodyTransform transform) {
         this.type = type;
@@ -43,7 +43,7 @@ public abstract class Collider {
         this.type = type;
         this.rigidbody = rigidbody;
         if (rigidbody != null) {
-            this.transform = rigidbody.transform;
+            this.transform = rigidbody.getTransform();
         } else {
             this.transform = new RigidbodyTransform();
         }
@@ -59,6 +59,10 @@ public abstract class Collider {
 
     public RigidbodyTransform getTransform() {
         return transform;
+    }
+
+    public ColliderType getType() {
+        return type;
     }
 
     public boolean intersectsWith(Collider other) {

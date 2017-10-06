@@ -34,9 +34,9 @@ public class GravityForce implements ForceGenerator {
     public void tick(Rigidbody body, float delta) {
         // Apply the mass-scaled force to the body 
         body.addLinearForce(
-                gravity.x * body.getMass(),
-                gravity.y * body.getMass(),
-                gravity.z * body.getMass());
+                gravity.x() * body.getMass(),
+                gravity.y() * body.getMass(),
+                gravity.z() * body.getMass());
     }
 
 }

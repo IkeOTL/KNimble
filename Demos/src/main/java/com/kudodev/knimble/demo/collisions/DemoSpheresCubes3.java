@@ -55,7 +55,7 @@ public class DemoSpheresCubes3 extends RenderLoop {
         s0.getColor().set(1, 0, 0, 1);
         r0.getTransform().setPosition(0, 5, -10f);
         r0.addLinearAcceleration(0, -10, 0);
-        physicsSpace.addBody(r0, c0);        
+        physicsSpace.addBody(r0, c0);
 
         Rigidbody r1 = new Rigidbody(999999);
         Collider c1 = new BoxCollider(r1, new Vector3f(5, .25f, 5));
@@ -63,7 +63,7 @@ public class DemoSpheresCubes3 extends RenderLoop {
         s1.getColor().set(0, 0, 1, 1);
         shapes.add(s1);
         r1.getTransform().setPosition(0, -2, -10);
-        r1.transform.rotate((float) Math.toRadians(10), new Vector3f(0, 0, 1));
+        r1.getTransform().rotate((float) Math.toRadians(10), new Vector3f(0, 0, 1));
         physicsSpace.addBody(r1, c1);
 
         return shapes;

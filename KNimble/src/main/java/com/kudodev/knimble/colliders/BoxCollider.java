@@ -56,17 +56,17 @@ public class BoxCollider extends Collider {
 
     @Override
     public void updateInertiaTensor() {
-        if (rigidbody == null) {
+        if (getRigidbody() == null) {
             return;
         }
 
         Matrix3f inertiaTensor = new Matrix3f();
-        float mass = rigidbody.getMass();
+        float mass = getRigidbody().getMass();
         inertiaTensor.identity();
-        inertiaTensor.m00 = 0.333f * mass * (extents.y * extents.y + extents.z * extents.z);
-        inertiaTensor.m11 = 0.333f * mass * (extents.x * extents.x + extents.z * extents.z);
-        inertiaTensor.m22 = 0.333f * mass * (extents.x * extents.x + extents.y * extents.y);
-        rigidbody.setInertiaTensor(inertiaTensor);
+        inertiaTensor.m00(0.333f * mass * (extents.y() * extents.y() + extents.z() * extents.z()));
+        inertiaTensor.m11(0.333f * mass * (extents.x() * extents.x() + extents.z() * extents.z()));
+        inertiaTensor.m22(0.333f * mass * (extents.x() * extents.x() + extents.y() * extents.y()));
+        getRigidbody().setInertiaTensor(inertiaTensor);
     }
 
     @Override
@@ -94,9 +94,9 @@ public class BoxCollider extends Collider {
     @Override
     public boolean intersectsWith(BoxCollider other) {
         // Find the vector between the two centres
-        Vector3f toCenter = new Vector3f(other.transform.getWorldPosition()).sub(transform.getWorldPosition());
-        Matrix4f m = transform.getTransMatrix();
-        Matrix4f o = other.transform.getTransMatrix();
+        Vector3f toCenter = new Vector3f(other.getTransform().getWorldPosition()).sub(getTransform().getWorldPosition());
+        Matrix4f m = getTransform().getTransMatrix();
+        Matrix4f o = other.getTransform().getTransMatrix();
         return (overlapOnAxis(other, toCenter, m.m00(), m.m01(), m.m02())
                 && overlapOnAxis(other, toCenter, m.m10(), m.m11(), m.m12())
                 && overlapOnAxis(other, toCenter, m.m20(), m.m21(), m.m22())
@@ -115,10 +115,10 @@ public class BoxCollider extends Collider {
     }
 
     private float transformToAxis(BoxCollider box, float x, float y, float z) {
-        Matrix4f m = box.transform.getTransMatrix();
-        return box.extents.x * Math.abs(x * m.m00() + y * m.m01() + z * m.m02())
-                + box.extents.y * Math.abs(x * m.m10() + y * m.m11() + z * m.m12())
-                + box.extents.z * Math.abs(x * m.m20() + y * m.m21() + z * m.m22());
+        Matrix4f m = box.getTransform().getTransMatrix();
+        return box.getExtents().x() * Math.abs(x * m.m00() + y * m.m01() + z * m.m02())
+                + box.getExtents().y() * Math.abs(x * m.m10() + y * m.m11() + z * m.m12())
+                + box.getExtents().z() * Math.abs(x * m.m20() + y * m.m21() + z * m.m22());
     }
 
     private boolean overlapOnAxis(BoxCollider other, Vector3f distanceFromCenters, float x, float y, float z) {
@@ -146,7 +146,7 @@ public class BoxCollider extends Collider {
 //        }
 
         // Find the vector between the two centres
-        Vector3f toCenter = new Vector3f(other.transform.getWorldPosition()).sub(transform.getWorldPosition());
+        Vector3f toCenter = new Vector3f(other.getTransform().getWorldPosition()).sub(getTransform().getWorldPosition());
         PenetrationData penData = new PenetrationData();
         penData.penetration = Float.MAX_VALUE;
         penData.bestAxis = 0xFFFFF;
@@ -157,8 +157,8 @@ public class BoxCollider extends Collider {
         // Store the best axis-major, in case we run into almost
         // parallel edge collisions later
         // We start assuming there is no contact
-        Matrix4f m = transform.getTransMatrix();
-        Matrix4f o = other.transform.getTransMatrix();
+        Matrix4f m = getTransform().getTransMatrix();
+        Matrix4f o = other.getTransform().getTransMatrix();
         testAxis(other, toCenter, m.m00(), m.m01(), m.m02(), 0, penData);
         testAxis(other, toCenter, m.m10(), m.m11(), m.m12(), 1, penData);
         testAxis(other, toCenter, m.m20(), m.m21(), m.m22(), 2, penData);
@@ -220,7 +220,7 @@ public class BoxCollider extends Collider {
         // (its a mid-point) and we determine which of the extremes in each
         // of the other axes is closest.
         Vector3f ptOnOneEdge = new Vector3f(extents);
-        Vector3f ptOnTwoEdge = new Vector3f(other.extents);
+        Vector3f ptOnTwoEdge = new Vector3f(other.getExtents());
         Vector3f temp = new Vector3f();
         for (int i = 0; i < 3; i++) {
             if (i == oneAxisIndex) {
@@ -244,7 +244,7 @@ public class BoxCollider extends Collider {
         // We need to find out point of closest approach of the two
         // line-segments.
         Vector3f vertex = contactPoint(ptOnOneEdge, oneAxis, extents.get(oneAxisIndex),
-                ptOnTwoEdge, twoAxis, other.extents.get(twoAxisIndex),
+                ptOnTwoEdge, twoAxis, other.getExtents().get(twoAxisIndex),
                 bestSingleAxis > 2
         );
 
@@ -254,7 +254,7 @@ public class BoxCollider extends Collider {
         contact.penetration = penData.penetration;
         contact.contactNormal.set(axis);
         contact.contactPoint.set(vertex);
-        contact.setBodyData(this.rigidbody, other.rigidbody);
+        contact.setup(getRigidbody(), other.getRigidbody());
     }
 
     private void testAxis(BoxCollider other, Vector3f distanceFromCenters, float x, float y, float z, int index, PenetrationData penetrationData) {
@@ -290,31 +290,31 @@ public class BoxCollider extends Collider {
         // We know which axis the collision is on (i.e. best),
         // but we need to work out which of the two faces on
         // this axis.
-        Matrix4f o = one.transform.getTransMatrix();
-        Matrix4f t = two.transform.getTransMatrix();
+        Matrix4f o = one.getTransform().getTransMatrix();
+        Matrix4f t = two.getTransform().getTransMatrix();
         Vector3f normal = JOMLExtra.getColumn(o, best, new Vector3f());
-        if (normal.x * toCenter.x + normal.y * toCenter.y + normal.z * toCenter.z > 0) {
+        if (normal.x() * toCenter.x() + normal.y() * toCenter.y() + normal.z() * toCenter.z() > 0) {
             normal.mul(-1.0f);
         }
 
         // Work out which vertex of box two we're colliding with.
         // Using toCentre doesn't work!   
         // Create the contact data
-        contact.contactPoint.set(two.extents);
-        if (t.m00() * normal.x + t.m01() * normal.y + t.m02() * normal.z < 0) {
-            contact.contactPoint.x = -contact.contactPoint.x;
+        contact.contactPoint.set(two.getExtents());
+        if (t.m00() * normal.x() + t.m01() * normal.y() + t.m02() * normal.z() < 0) {
+            contact.contactPoint.x = -contact.contactPoint.x();
         }
-        if (t.m10() * normal.x + t.m11() * normal.y + t.m12() * normal.z < 0) {
-            contact.contactPoint.y = -contact.contactPoint.y;
+        if (t.m10() * normal.x() + t.m11() * normal.y() + t.m12() * normal.z() < 0) {
+            contact.contactPoint.y = -contact.contactPoint.y();
         }
-        if (t.m20() * normal.x + t.m21() * normal.y + t.m22() * normal.z < 0) {
-            contact.contactPoint.z = -contact.contactPoint.z;
+        if (t.m20() * normal.x() + t.m21() * normal.y() + t.m22() * normal.z() < 0) {
+            contact.contactPoint.z = -contact.contactPoint.z();
         }
         t.transformPosition(contact.contactPoint);
 
         contact.contactNormal.set(normal);
         contact.penetration = pen;
-        contact.setBodyData(one.rigidbody, two.rigidbody);
+        contact.setup(one.getRigidbody(), two.getRigidbody());
     }
 
     /**

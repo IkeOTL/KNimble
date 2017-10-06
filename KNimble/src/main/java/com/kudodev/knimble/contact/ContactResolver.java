@@ -23,43 +23,14 @@ import org.joml.Vector3f;
  */
 public class ContactResolver {
 
-    /**
-     * Holds the number of iterations to perform when resolving velocity.
-     */
-    protected int velocityIterations;
+    private int velocityIterations;
+    private int positionIterations;
 
-    /**
-     * Holds the number of iterations to perform when resolving position.
-     */
-    protected int positionIterations;
+    private float velocityEpsilon = 0.005f;
+    private float positionEpsilon = 0.005f;
 
-    /**
-     * To avoid instability velocities smaller than this value are considered to
-     * be zero. Too small and the simulation may be unstable, too large and the
-     * bodies may interpenetrate visually. A good starting point is the default
-     * of 0.01.
-     */
-    protected float velocityEpsilon = 0.001f;
-
-    /**
-     * To avoid instability penetrations smaller than this value are considered
-     * to be not interpenetrating. Too small and the simulation may be unstable,
-     * too large and the bodies may interpenetrate visually. A good starting
-     * point is the default of 0.01.
-     */
-    protected float positionEpsilon = 0.001f;
-
-    /**
-     * Stores the number of velocity iterations used in the last call to resolve
-     * contacts.
-     */
-    public int velocityIterationsUsed;
-
-    /**
-     * Stores the number of position iterations used in the last call to resolve
-     * contacts.
-     */
-    public int positionIterationsUsed;
+    private int velocityIterationsUsed = 0;
+    private int positionIterationsUsed = 0;
 
     public ContactResolver() {
     }
@@ -110,7 +81,7 @@ public class ContactResolver {
     }
 
     /**
-     * Resolves a set of contacts for both penetration and velocity.
+     * Resolves a setup of contacts for both penetration and velocity.
      *
      * Contacts that cannot interact with each other should be passed to
      * separate calls to resolveContacts, as the resolution algorithm takes much
@@ -140,7 +111,8 @@ public class ContactResolver {
         if (numContacts == 0) {
             return;
         }
-        if (!(velocityIterations > 0 && positionIterations > 0 && positionEpsilon >= 0.0f && positionEpsilon >= 0.0f)) {
+        if (!(velocityIterations > 0 && positionIterations > 0 
+                && positionEpsilon >= 0.0f && positionEpsilon >= 0.0f)) {
             return;
         }
         // Prepare the contacts for processing 
@@ -171,6 +143,8 @@ public class ContactResolver {
         positionIterationsUsed = 0;
         Vector3f deltaPosition = new Vector3f();
         while (positionIterationsUsed < positionIterations) {
+            positionIterationsUsed++;
+
             // Find biggest penetration
             max = positionEpsilon;
             index = numContacts;
@@ -180,6 +154,7 @@ public class ContactResolver {
                     index = i;
                 }
             }
+
             if (index == numContacts) {
                 break;
             }
@@ -192,30 +167,29 @@ public class ContactResolver {
             // Again this action may have changed the penetration of other
             // bodies, so we update contacts.
             for (i = 0; i < numContacts; i++) {
-                // Check each body in the contact
+                // Check each getBody in the contact
                 for (int b = 0; b < 2; b++) {
-                    if (c[i].body[b] == null) {
+                    if (c[i].getBody(b) == null) {
                         continue;
                     }
-                    // Check for a match with each body in the newly
+                    // Check for a match with each getBody in the newly
                     // resolved contact
                     for (int d = 0; d < 2; d++) {
-                        if (c[i].body[b] != c[index].body[d]) {
+                        if (c[i].getBody(b) != c[index].getBody(d)) {
                             continue;
                         }
                         deltaPosition.set(angularChange[d]);
-                        deltaPosition.cross(c[i].relativeContactPosition[b]);
+                        deltaPosition.cross(c[i].getRelativeContactPosition(b));
                         deltaPosition.add(linearChange[d]);
 
                         // The sign of the change is positive if we're
-                        // dealing with the second body in a contact
+                        // dealing with the second getBody in a contact
                         // and negative otherwise (because we're
                         // subtracting the resolution)..
                         c[i].penetration += (deltaPosition.dot(c[i].contactNormal) * (b != 0 ? 1 : -1));
                     }
                 }
             }
-            positionIterationsUsed++;
         }
     }
 
@@ -223,10 +197,11 @@ public class ContactResolver {
      * Resolves the velocity issues with the given array of constraints, using
      * the given number of iterations.
      */
-    Vector3f[] velocityChange = {new Vector3f(), new Vector3f()};
-    Vector3f[] rotationChange = {new Vector3f(), new Vector3f()};
-
     protected void adjustVelocities(Contact[] c, int numContacts, float duration) {
+
+        Vector3f[] velocityChange = {new Vector3f(), new Vector3f()};
+        Vector3f[] rotationChange = {new Vector3f(), new Vector3f()};
+
         // iteratively handle impacts in order of severity.
         velocityIterationsUsed = 0;
         Vector3f deltaVel = new Vector3f();
@@ -236,8 +211,8 @@ public class ContactResolver {
             float max = velocityEpsilon;
             int index = numContacts;
             for (int i = 0; i < numContacts; i++) {
-                if (c[i].desiredDeltaVelocity > max) {
-                    max = c[i].desiredDeltaVelocity;
+                if (c[i].desiredDeltaVelocity() > max) {
+                    max = c[i].desiredDeltaVelocity();
                     index = i;
                 }
             }
@@ -255,24 +230,24 @@ public class ContactResolver {
             // contact velocities means that some of the relative closing
             // velocities need recomputing.
             for (int i = 0; i < numContacts; i++) {
-                // Check each body in the contact
+                // Check each getBody in the contact
                 for (int b = 0; b < 2; b++) {
-                    if (c[i].body[b] == null) {
+                    if (c[i].getBody(b) == null) {
                         continue;
                     }
-                    // Check for a match with each body in the newly
+                    // Check for a match with each getBody in the newly
                     // resolved contact
                     for (int d = 0; d < 2; d++) {
-                        if (c[i].body[b] != c[index].body[d]) {
+                        if (c[i].getBody(b) != c[index].getBody(d)) {
                             continue;
                         }
                         deltaVel.set(rotationChange[d]);
-                        deltaVel.cross(c[i].relativeContactPosition[b]);
+                        deltaVel.cross(c[i].getRelativeContactPosition(b));
                         deltaVel.add(velocityChange[d]);
                         // The sign of the change is negative if we're dealing
-                        // with the second body in a contact.
-                        deltaVel.mulTranspose(c[i].contactToWorld).mul(b != 0 ? -1 : 1);
-                        c[i].contactVelocity.add(deltaVel);
+                        // with the second getBody in a contact.
+                        deltaVel.mulTranspose(c[i].getContactToWorld()).mul(b != 0 ? -1 : 1);
+                        c[i].getContactVelocity().add(deltaVel);
                         c[i].calculateDesiredDeltaVelocity(duration);
                     }
                 }

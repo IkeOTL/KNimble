@@ -35,15 +35,15 @@ public class RodLink extends RigidbodyLink {
 
     public RodLink(Rigidbody a, Rigidbody b) {
         super(a, b);
-        length = a.transform.getWorldPosition()
-                .distance(b.transform.getWorldPosition());
+        length = a.getTransform().getWorldPosition()
+                .distance(b.getTransform().getWorldPosition());
     }
 
     @Override
     public void tick(ContactCache cData) {
         // Find the length of the rod
-        Vector3f d = new Vector3f(rigidbodies[1].transform.getWorldPosition())
-                .sub(rigidbodies[0].transform.getWorldPosition());
+        Vector3f d = new Vector3f(rigidbodies[1].getTransform().getWorldPosition())
+                .sub(rigidbodies[0].getTransform().getWorldPosition());
 
         float currentLength = d.length();
 
@@ -53,18 +53,18 @@ public class RodLink extends RigidbodyLink {
         }
 
         Contact contact = cData.getContact();
-        contact.setBodyData(rigidbodies[0], rigidbodies[1], 1, 0);
+        contact.setup(rigidbodies[0], rigidbodies[1], 1, 0);
 
         // The contact normal depends on whether we're extending or compressing
         if (currentLength > length) {
             contact.contactNormal.set(d).normalize();
-            contact.contactPoint.set(rigidbodies[0].transform.getWorldPosition())
-                    .add(rigidbodies[1].transform.getWorldPosition()).mul(0.5f);
+            contact.contactPoint.set(rigidbodies[0].getTransform().getWorldPosition())
+                    .add(rigidbodies[1].getTransform().getWorldPosition()).mul(0.5f);
             contact.penetration = currentLength - length;
         } else {
             contact.contactNormal.set(d).normalize().mul(-1);
-            contact.contactPoint.set(rigidbodies[0].transform.getWorldPosition())
-                    .add(rigidbodies[1].transform.getWorldPosition()).mul(0.5f);
+            contact.contactPoint.set(rigidbodies[0].getTransform().getWorldPosition())
+                    .add(rigidbodies[1].getTransform().getWorldPosition()).mul(0.5f);
             contact.penetration = length - currentLength;
         }
     }

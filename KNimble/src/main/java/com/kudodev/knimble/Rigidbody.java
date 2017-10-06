@@ -28,7 +28,7 @@ import org.joml.Vector3f;
  */
 public class Rigidbody {
 
-    public final RigidbodyTransform transform;
+    private final RigidbodyTransform transform;
 
     private final Vector3f angularVelocity = new Vector3f(0);
     private final Vector3f linearVelocity = new Vector3f(0);
@@ -40,8 +40,8 @@ public class Rigidbody {
     private final Vector3f angularForces = new Vector3f(0);
     private final Vector3f linearForces = new Vector3f(0);
 
-    protected Matrix3f inverseInertiaTensor = new Matrix3f();
-    protected Matrix3f inverseInertiaTensorWorld = new Matrix3f();
+    private Matrix3f inverseInertiaTensor = new Matrix3f();
+    private Matrix3f inverseInertiaTensorWorld = new Matrix3f();
 
     private final List<Constraint> anchors = new ArrayList<>();
 
@@ -50,14 +50,14 @@ public class Rigidbody {
     private float linearDamping = 0.99f;
     private float angularDamping = 0.8f;
 
-    protected float sleepEpsilon = .001f;
-    protected float motion = sleepEpsilon * 2f;
+    private float sleepEpsilon = .001f;
+    private float motion = sleepEpsilon * 2f;
     private boolean canSleep = true;
     private boolean awake = true;
 
     // temp material data
-    protected float friction = .9f;
-    protected float restitution = .03f;
+    private float friction = .9f;
+    private float restitution = .03f;
 
     public Rigidbody() {
         this.transform = new RigidbodyTransform();
@@ -98,9 +98,9 @@ public class Rigidbody {
         angularVelocity.mul((float) Math.pow(angularDamping, delta));
 
         // apply to transform
-        transform.position.fma(delta, linearVelocity);
+        transform.getLocalPosition().fma(delta, linearVelocity);
 
-        transform.rotation.integrate(delta, angularVelocity.x, angularVelocity.y, angularVelocity.z);
+        transform.getLocalRotation().integrate(delta, angularVelocity.x(), angularVelocity.y(), angularVelocity.z());
 
         transform.setDirty();
 

@@ -41,7 +41,7 @@ public class BungeeAnchor extends Constraint {
 
         Vector3f force = new Vector3f(anchor);
 
-        force.sub(rigidbody.transform.getWorldPosition());
+        force.sub(rigidbody.getTransform().getWorldPosition());
 
         // Check if the bungee is compressed
         float magnitude = force.length();

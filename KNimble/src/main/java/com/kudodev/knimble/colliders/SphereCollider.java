@@ -27,7 +27,7 @@ import org.joml.Vector3f;
  */
 public class SphereCollider extends Collider {
 
-    protected float radius = .5f;
+    private float radius = .5f;
 
     public SphereCollider(Rigidbody rigidbody) {
         this(rigidbody, 0.5f);
@@ -41,17 +41,17 @@ public class SphereCollider extends Collider {
 
     @Override
     public void updateInertiaTensor() {
-        if (rigidbody == null) {
+        if (getRigidbody() == null) {
             return;
         }
 
-        float moment = .4f * rigidbody.getMass() * (radius * radius);
+        float moment = .4f * getRigidbody().getMass() * (radius * radius);
         Matrix3f inertiaTensor = new Matrix3f();
         inertiaTensor.identity();
-        inertiaTensor.m00 = moment;
-        inertiaTensor.m11 = moment;
-        inertiaTensor.m22 = moment;
-        rigidbody.setInertiaTensor(inertiaTensor);
+        inertiaTensor.m00(moment);
+        inertiaTensor.m11(moment);
+        inertiaTensor.m22(moment);
+        getRigidbody().setInertiaTensor(inertiaTensor);
     }
 
     public float getRadius() {
@@ -65,32 +65,32 @@ public class SphereCollider extends Collider {
 
     @Override
     public boolean intersectsWith(BoxCollider other) {
-        return Intersection.getDistanceSq(other, transform.getWorldPosition())
+        return Intersection.getDistanceSq(other, getTransform().getWorldPosition())
                 <= radius * radius;
     }
 
     @Override
     public boolean intersectsWith(CapsuleCollider other) {
-        return false;
+        return other.intersectsWith(this);
     }
 
     @Override
     public void createCollision(CapsuleCollider other, ContactCache contactCache) {
-
+        other.createCollision(other, contactCache);
     }
 
     @Override
     public void createCollision(SphereCollider other, ContactCache contactCache) {
         Contact contact = contactCache.getContact();
 
-        Vector3f pos0 = transform.getWorldPosition();
-        Vector3f pos1 = other.transform.getWorldPosition();
+        Vector3f pos0 = getTransform().getWorldPosition();
+        Vector3f pos1 = other.getTransform().getWorldPosition();
 
         contact.penetration = -Intersection.getDistance(this, other);
         contact.contactNormal.set(pos0).sub(pos1).normalize();
         contact.contactPoint.set(contact.contactNormal).mul(radius).add(pos1);
 
-        contact.setBodyData(this.rigidbody, other.rigidbody);
+        contact.setup(getRigidbody(), other.getRigidbody());
     }
 
     @Override
@@ -98,12 +98,12 @@ public class SphereCollider extends Collider {
         Contact contact = contactCache.getContact();
 
         Vector3f closestPoint = new Vector3f();
-        Vector3f pos = transform.getWorldPosition();
+        Vector3f pos = getTransform().getWorldPosition();
         contact.penetration = radius * radius - Intersection.getDistanceSq(other, pos, closestPoint);
 
         contact.contactNormal.set(pos).sub(closestPoint).normalize();
         contact.contactPoint.set(closestPoint);
-        contact.setBodyData(this.rigidbody, other.rigidbody);
+        contact.setup(getRigidbody(), other.getRigidbody());
     }
 
 }

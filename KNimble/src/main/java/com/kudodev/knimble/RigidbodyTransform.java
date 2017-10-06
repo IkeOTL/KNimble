@@ -25,10 +25,10 @@ import org.joml.Vector3f;
  */
 public class RigidbodyTransform {
 
-    protected RigidbodyTransform parent = null;
+    private RigidbodyTransform parent = null;
 
-    public final Vector3f position;
-    public final Quaternionf rotation;
+    private final Vector3f position;
+    private final Quaternionf rotation;
 
     private final Vector3f worldPosition = new Vector3f(0);
     private final Quaternionf worldRotation = new Quaternionf();
@@ -69,6 +69,14 @@ public class RigidbodyTransform {
     public void setPosition(float x, float y, float z) {
         position.set(x, y, z);
         isDirty = true;
+    }
+
+    public Vector3f getLocalPosition() {
+        return position;
+    }
+
+    public Quaternionf getLocalRotation() {
+        return rotation;
     }
 
     public void rotate(float f, Vector3f v) {

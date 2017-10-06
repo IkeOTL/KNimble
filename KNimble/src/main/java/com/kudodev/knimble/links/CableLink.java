@@ -41,8 +41,8 @@ public class CableLink extends RigidbodyLink {
 
     public CableLink(Rigidbody a, Rigidbody b) {
         super(a, b);
-        length = a.transform.getWorldPosition()
-                .distance(b.transform.getWorldPosition());
+        length = a.getTransform().getWorldPosition()
+                .distance(b.getTransform().getWorldPosition());
     }
 
     public void setRestitution(float restitution) {
@@ -53,8 +53,8 @@ public class CableLink extends RigidbodyLink {
     public void tick(ContactCache cData) {
 
         // Calculate the length of the link
-        Vector3f d = new Vector3f(rigidbodies[1].transform.getWorldPosition())
-                .sub(rigidbodies[0].transform.getWorldPosition());
+        Vector3f d = new Vector3f(rigidbodies[1].getTransform().getWorldPosition())
+                .sub(rigidbodies[0].getTransform().getWorldPosition());
         float currentLength = d.length();
 
         // Check if it is violated
@@ -64,9 +64,9 @@ public class CableLink extends RigidbodyLink {
 
         Contact contact = cData.getContact();
         contact.contactNormal.set(d).normalize();
-        contact.contactPoint.set(rigidbodies[0].transform.getWorldPosition())
-                .add(rigidbodies[1].transform.getWorldPosition()).mul(0.5f);
+        contact.contactPoint.set(rigidbodies[0].getTransform().getWorldPosition())
+                .add(rigidbodies[1].getTransform().getWorldPosition()).mul(0.5f);
         contact.penetration = currentLength - length;
-        contact.setBodyData(rigidbodies[0], rigidbodies[1], 1, restitution);
+        contact.setup(rigidbodies[0], rigidbodies[1], 1, restitution);
     }
 }

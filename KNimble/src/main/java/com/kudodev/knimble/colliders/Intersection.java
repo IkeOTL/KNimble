@@ -32,16 +32,16 @@ class Intersection {
 //        return distSq - (radiusA + radiusB) * (radiusA + radiusB);
 //    }
     public static float getDistanceSq(SphereCollider a, SphereCollider b) {
-        float distSq = a.transform.getWorldPosition()
-                .distanceSquared(b.transform.getWorldPosition());
-        float radiusA = a.radius;
-        float radiusB = b.radius;
+        float distSq = a.getTransform().getWorldPosition()
+                .distanceSquared(b.getTransform().getWorldPosition());
+        float radiusA = a.getRadius();
+        float radiusB = b.getRadius();
         return distSq - (radiusA + radiusB) * (radiusA + radiusB);
     }
 
     public static float getDistance(SphereCollider a, SphereCollider b) {
-        float dist = a.transform.getWorldPosition().distance(b.transform.getWorldPosition());
-        return dist - (a.radius + b.radius);
+        float dist = a.getTransform().getWorldPosition().distance(b.getTransform().getWorldPosition());
+        return dist - (a.getRadius() + b.getRadius());
     }
 
     public static float getDistanceSq(BoxCollider b, Vector3f p, Vector3f out) {
@@ -52,11 +52,11 @@ class Intersection {
 
     public static Vector3f getClosestPoint(BoxCollider b, Vector3f p, Vector3f out) {
         // Start result at center of box; make steps from there
-        out.set(b.transform.getWorldPosition());
+        out.set(b.getTransform().getWorldPosition());
         Vector3f distance = new Vector3f(p).sub(out);
 
 //        Matrix4f m = b.transform.getTransMatrix();
-        Matrix3f m = b.transform.getWorldRotation().get(new Matrix3f());
+        Matrix3f m = b.getTransform().getWorldRotation().get(new Matrix3f());
         Vector3f axis = new Vector3f();
         for (int i = 0; i < 3; i++) {
             m.getColumn(i, axis);
@@ -80,11 +80,11 @@ class Intersection {
     }
 
     public static float getDistanceSq(BoxCollider b, Vector3f p) {
-        Vector3f v = new Vector3f(p).sub(b.transform.getWorldPosition());
+        Vector3f v = new Vector3f(p).sub(b.getTransform().getWorldPosition());
         float sqDist = 0.0f;
 
 //        Matrix4f m = b.transform.getTransMatrix();
-        Matrix3f m = b.transform.getWorldRotation().get(new Matrix3f());
+        Matrix3f m = b.getTransform().getWorldRotation().get(new Matrix3f());
         Vector3f axis = new Vector3f();
         for (int i = 0; i < 3; i++) {
             m.getColumn(i, axis);

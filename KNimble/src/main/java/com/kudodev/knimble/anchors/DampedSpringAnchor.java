@@ -38,7 +38,7 @@ public class DampedSpringAnchor extends Constraint {
     @Override
     public void tick(Rigidbody rigidbody, float delta) {
         // Calculate the relative position of the particle to the anchor
-        Vector3f position = new Vector3f(rigidbody.transform.getWorldPosition());
+        Vector3f position = new Vector3f(rigidbody.getTransform().getWorldPosition());
         position.sub(anchor);
 
         // Calculate the constants and check they are in bounds.

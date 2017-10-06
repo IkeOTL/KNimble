@@ -56,7 +56,7 @@ public class DemoCapsuleSpheres1 extends RenderLoop {
         shapes.add(s0);
         s0.getColor().set(1, 0, 0, 1);
         r0.getTransform().setPosition(0, -1f, -5f);
-        r0.transform.rotate((float) Math.toRadians(80), new Vector3f(0, 0, 1));
+        r0.getTransform().rotate((float) Math.toRadians(80), new Vector3f(0, 0, 1));
         physicsSpace.addBody(r0, c0);
 
         Rigidbody r1 = new Rigidbody(1);
@@ -67,7 +67,7 @@ public class DemoCapsuleSpheres1 extends RenderLoop {
         r1.getTransform().setPosition(-1.5f, 2, -5);
         r1.addLinearAcceleration(0, -10, 0);
         physicsSpace.addBody(r1, c1);
-        
+
         Rigidbody r2 = new Rigidbody(999999);
         Collider c2 = new SphereCollider(r2);
         Shape s2 = new Shape(sphere, c2);
