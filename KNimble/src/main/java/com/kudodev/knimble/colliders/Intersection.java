@@ -15,7 +15,8 @@
  */
 package com.kudodev.knimble.colliders;
 
-import org.joml.Matrix3f;
+import com.kudodev.knimble.JOMLExtra;
+import org.joml.Matrix4f;
 import org.joml.Vector3f;
 
 /**
@@ -24,13 +25,26 @@ import org.joml.Vector3f;
  */
 class Intersection {
 
-//    public static float getDistanceSq(CapsuleCollider a, SphereCollider b) {
-//        float distSq = a.transform.getWorldPosition()
-//                .distanceSquared(b.transform.getWorldPosition());
-//        float radiusA = a.getRadius();
-//        float radiusB = b.getRadius();
-//        return distSq - (radiusA + radiusB) * (radiusA + radiusB);
-//    }
+    public static float getDistanceSq(Vector3f a, Vector3f b, Vector3f c) {
+        Vector3f ab = new Vector3f(b).sub(a);
+        Vector3f ac = new Vector3f(c).sub(a);
+        Vector3f bc = new Vector3f(c).sub(b);
+
+        float e = ac.dot(ab);
+
+        // Handle cases where c projects outside ab
+        if (e <= 0.0f) {
+            return ac.dot(ac);
+        }
+
+        float f = ab.dot(ab);
+        if (e >= f) {
+            return bc.dot(bc);
+        }
+        // Handle cases where c projects onto ab
+        return ac.dot(ac) - e * e / f;
+    }
+
     public static float getDistanceSq(SphereCollider a, SphereCollider b) {
         float distSq = a.getTransform().getWorldPosition()
                 .distanceSquared(b.getTransform().getWorldPosition());
@@ -55,12 +69,10 @@ class Intersection {
         out.set(b.getTransform().getWorldPosition());
         Vector3f distance = new Vector3f(p).sub(out);
 
-//        Matrix4f m = b.transform.getTransMatrix();
-        Matrix3f m = b.getTransform().getWorldRotation().get(new Matrix3f());
+        Matrix4f m = b.getTransform().getTransMatrix();
         Vector3f axis = new Vector3f();
         for (int i = 0; i < 3; i++) {
-            m.getColumn(i, axis);
-//            JOMLExtra.getColumn(m, i, axis);
+            JOMLExtra.getColumn(m, i, axis);
             float dist = distance.dot(axis);
 
             // If distance farther than the box extents, clamp to the box
@@ -83,12 +95,10 @@ class Intersection {
         Vector3f v = new Vector3f(p).sub(b.getTransform().getWorldPosition());
         float sqDist = 0.0f;
 
-//        Matrix4f m = b.transform.getTransMatrix();
-        Matrix3f m = b.getTransform().getWorldRotation().get(new Matrix3f());
+        Matrix4f m = b.getTransform().getTransMatrix();
         Vector3f axis = new Vector3f();
         for (int i = 0; i < 3; i++) {
-            m.getColumn(i, axis);
-//            JOMLExtra.getColumn(m, i, axis);
+            JOMLExtra.getColumn(m, i, axis);
             // Project vector from box center to p on each axis, getting the distance
             // of p along that axis, and count any excess distance outside box extents
             float d = v.dot(axis);

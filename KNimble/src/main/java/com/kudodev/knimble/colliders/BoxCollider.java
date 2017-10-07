@@ -71,23 +71,21 @@ public class BoxCollider extends Collider {
 
     @Override
     public boolean intersectsWith(CapsuleCollider other) {
-        return false;
+        return other.intersectsWith(this);
     }
 
     @Override
     public void createCollision(CapsuleCollider other, ContactCache contactCache) {
-
+        other.createCollision(this, contactCache);
     }
 
     @Override
     public boolean intersectsWith(SphereCollider other) {
-        // might as well use sphere's implementation
         return other.intersectsWith(this);
     }
 
     @Override
     public void createCollision(SphereCollider other, ContactCache contactCache) {
-        // might as well use sphere's implementation
         other.createCollision(this, contactCache);
     }
 
