@@ -76,7 +76,7 @@ public class SphereCollider extends Collider {
 
     @Override
     public void createCollision(CapsuleCollider other, ContactCache contactCache) {
-        other.createCollision(other, contactCache);
+        other.createCollision(this, contactCache);
     }
 
     @Override
