@@ -23,24 +23,34 @@ import org.joml.Vector3f;
  *
  * @author IkeOTL
  */
-public interface Transform {
+public abstract class Transform {
 
-    public Matrix4f getTransMatrix();
+    protected boolean isDirty;
+    protected final Matrix4f transMatrix = new Matrix4f();
 
-    public void setDirty();
+    public Matrix4f getTransMatrix() {
+        updateTransform();
+        return transMatrix;
+    }
 
-    public void setParent(RigidbodyTransform parent);
+    public void setDirty() {
+        isDirty = true;
+    }
 
-    public Vector3f getLocalPosition();
+    public abstract Vector3f getLocalPosition();
 
-    public Vector3f getLocalScale();
+    public abstract Vector3f getLocalScale();
 
-    public Quaternionf getLocalRotation();
+    public abstract Quaternionf getLocalRotation();
 
-    public Vector3f getWorldPosition();
+    public abstract Vector3f getWorldPosition();
 
-    public Vector3f getWorldScale();
+    public abstract Vector3f getWorldScale();
 
-    public Quaternionf getWorldRotation();
+    public abstract Quaternionf getWorldRotation();
+
+    protected abstract void updateTransform();
+
+    protected abstract void updateTransform(Transform t);
 
 }

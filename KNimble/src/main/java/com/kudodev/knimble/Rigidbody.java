@@ -68,11 +68,6 @@ public class Rigidbody {
         setMass(mass);
     }
 
-    public Rigidbody(RigidbodyTransform transform, float mass) {
-        this(mass);
-        this.transform.setParent(transform);
-    }
-
     public void integrate(float delta) {
         if (!awake) {
             return;

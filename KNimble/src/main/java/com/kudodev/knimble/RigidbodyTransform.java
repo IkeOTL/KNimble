@@ -15,7 +15,6 @@
  */
 package com.kudodev.knimble;
 
-import org.joml.Matrix4f;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
@@ -23,9 +22,7 @@ import org.joml.Vector3f;
  *
  * @author IkeOTL
  */
-public class RigidbodyTransform implements Transform {
-
-    private Transform parent = null;
+public class RigidbodyTransform extends Transform {
 
     private final Vector3f position;
     private final Quaternionf rotation;
@@ -33,15 +30,8 @@ public class RigidbodyTransform implements Transform {
     private final Vector3f worldPosition = new Vector3f(0);
     private final Quaternionf worldRotation = new Quaternionf();
 
-    private boolean isDirty;
-    private final Matrix4f transMatrix = new Matrix4f();
-
     public RigidbodyTransform() {
         this(new Vector3f(0), new Quaternionf());
-    }
-
-    public RigidbodyTransform(RigidbodyTransform t) {
-        this(new Vector3f(t.position), new Quaternionf(t.rotation));
     }
 
     public RigidbodyTransform(Vector3f p) {
@@ -51,26 +41,14 @@ public class RigidbodyTransform implements Transform {
     public RigidbodyTransform(Vector3f p, Quaternionf r) {
         position = p;
         rotation = r;
+
+        setDirty();
         updateTransform();
-    }
-
-    @Override
-    public Matrix4f getTransMatrix() {
-        if (isDirty) {
-            updateTransform();
-            isDirty = false;
-        }
-        return transMatrix;
-    }
-
-    @Override
-    public void setDirty() {
-        isDirty = true;
     }
 
     public void setPosition(float x, float y, float z) {
         position.set(x, y, z);
-        isDirty = true;
+        setDirty();
     }
 
     @Override
@@ -90,24 +68,18 @@ public class RigidbodyTransform implements Transform {
 
     public void rotate(float f, Vector3f v) {
         rotation.rotateAxis(f, v);
-        isDirty = true;
+        setDirty();
     }
 
     @Override
     public Vector3f getWorldPosition() {
-        if (isDirty) {
-            updateTransform();
-            isDirty = false;
-        }
+        updateTransform();
         return worldPosition;
     }
 
     @Override
     public Quaternionf getWorldRotation() {
-        if (isDirty) {
-            updateTransform();
-            isDirty = false;
-        }
+        updateTransform();
         return worldRotation;
     }
 
@@ -117,35 +89,39 @@ public class RigidbodyTransform implements Transform {
     }
 
     @Override
-    public void setParent(RigidbodyTransform parent) {
-        this.parent = parent;
+    protected void updateTransform() {
+        if (!isDirty) {
+            return;
+        }
+        isDirty = false;
+
+        worldPosition.set(position);
+        worldRotation.set(rotation);
+
+        transMatrix.translationRotateScale(
+                worldPosition.x(), worldPosition.y(), worldPosition.z(),
+                worldRotation.x(), worldRotation.y(), worldRotation.z(), worldRotation.w(),
+                1, 1, 1); // scaled mat4s ruin collision math
     }
 
-    private void updateTransform() {
-        if (parent != null) {
-            worldPosition.set(position);
-            worldPosition.mulPosition(parent.getTransMatrix());
-
-            worldRotation.set(parent.getWorldRotation());
-            worldRotation.mul(rotation);
-
-//            worldScale.set(parent.worldScale);
-//            worldScale.mul(scale);
-            transMatrix.translationRotateScale(
-                    worldPosition.x(), worldPosition.y(), worldPosition.z(),
-                    worldRotation.x(), worldRotation.y(), worldRotation.z(), worldRotation.w(),
-                    1, 1, 1); // scaled mat4s ruin collision math
-
-            parent.getTransMatrix().mul(transMatrix, transMatrix);
-        } else {
-            worldPosition.set(position);
-            worldRotation.set(rotation);
-//            worldScale.set(scale);
-
-            transMatrix.translationRotateScale(
-                    worldPosition.x(), worldPosition.y(), worldPosition.z(),
-                    worldRotation.x(), worldRotation.y(), worldRotation.z(), worldRotation.w(),
-                    1, 1, 1); // scaled mat4s ruin collision math
+    @Override
+    protected void updateTransform(Transform parent) {
+        if (!isDirty) {
+            return;
         }
+        isDirty = false;
+
+        worldPosition.set(position);
+        worldPosition.mulPosition(parent.getTransMatrix());
+
+        worldRotation.set(parent.getWorldRotation());
+        worldRotation.mul(rotation);
+
+        transMatrix.translationRotateScale(
+                worldPosition.x(), worldPosition.y(), worldPosition.z(),
+                worldRotation.x(), worldRotation.y(), worldRotation.z(), worldRotation.w(),
+                1, 1, 1); // scaled mat4s ruin collision math
+
+        parent.getTransMatrix().mul(transMatrix, transMatrix);
     }
 }

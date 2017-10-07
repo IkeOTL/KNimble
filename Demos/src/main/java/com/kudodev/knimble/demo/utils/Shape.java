@@ -15,6 +15,8 @@ package com.kudodev.knimble.demo.utils;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import com.kudodev.knimble.BasicTransform;
+import com.kudodev.knimble.Transform;
 import com.kudodev.knimble.colliders.BoxCollider;
 import com.kudodev.knimble.colliders.Collider;
 import com.kudodev.knimble.colliders.SphereCollider;
