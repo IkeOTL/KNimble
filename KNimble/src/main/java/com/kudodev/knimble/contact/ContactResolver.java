@@ -111,7 +111,7 @@ public class ContactResolver {
         if (numContacts == 0) {
             return;
         }
-        if (!(velocityIterations > 0 && positionIterations > 0 
+        if (!(velocityIterations > 0 && positionIterations > 0
                 && positionEpsilon >= 0.0f && positionEpsilon >= 0.0f)) {
             return;
         }

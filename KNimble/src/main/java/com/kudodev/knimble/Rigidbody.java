@@ -28,7 +28,7 @@ import org.joml.Vector3f;
  */
 public class Rigidbody {
 
-    private final RigidbodyTransform transform;
+    private final Transform transform;
 
     private final Vector3f angularVelocity = new Vector3f(0);
     private final Vector3f linearVelocity = new Vector3f(0);
@@ -59,18 +59,13 @@ public class Rigidbody {
     private float friction = .9f;
     private float restitution = .03f;
 
-    public Rigidbody() {
-        this.transform = new RigidbodyTransform();
-    }
-
-    public Rigidbody(float mass) {
-        this();
+    public Rigidbody(Transform t, float mass) {
+        this.transform = t;
         setMass(mass);
     }
 
-    public Rigidbody(RigidbodyTransform transform, float mass) {
-        this(mass);
-        this.transform.setParent(transform);
+    public Rigidbody(float mass) {
+        this(new RigidbodyTransform(), mass);
     }
 
     public void integrate(float delta) {
@@ -102,7 +97,7 @@ public class Rigidbody {
 
         transform.getLocalRotation().integrate(delta, angularVelocity.x(), angularVelocity.y(), angularVelocity.z());
 
-        transform.setDirty();
+        transform.setDirty(true);
 
         calculateIITWorld();
 
@@ -155,7 +150,7 @@ public class Rigidbody {
         this.restitution = restitution;
     }
 
-    public RigidbodyTransform getTransform() {
+    public Transform getTransform() {
         return transform;
     }
 

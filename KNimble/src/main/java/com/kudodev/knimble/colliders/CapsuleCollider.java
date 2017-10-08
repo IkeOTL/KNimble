@@ -43,6 +43,14 @@ public class CapsuleCollider extends Collider {
         updateInertiaTensor();
     }
 
+    public Vector3f getStartPoint() {
+        return startPoint;
+    }
+
+    public Vector3f getEndPoint() {
+        return endPoint;
+    }
+
     @Override
     public void updateInertiaTensor() {
         if (getRigidbody() == null) {
@@ -81,17 +89,9 @@ public class CapsuleCollider extends Collider {
         getTransform().getTransMatrix().transformPosition(a);
         getTransform().getTransMatrix().transformPosition(b);
 
-        Vector3f otherPos = other.getTransform().getWorldPosition();
-
-        Vector3f closestPoint = Intersectionf.findClosestPointOnLineSegment(
-                a.x(), a.y(), a.z(),
-                b.x(), b.y(), b.z(),
-                otherPos.x(), otherPos.y(), otherPos.z(),
-                new Vector3f());
-
-        float distSq = closestPoint.distanceSquared(otherPos) - (other.getRadius() + radius) * (other.getRadius() + radius);
-
-        return distSq <= 0;
+        float dist2 = Intersection.getDistanceSq(a, b, other.getTransform().getWorldPosition());
+        float radiusSum = other.getRadius() + radius;
+        return dist2 <= radiusSum * radiusSum;
     }
 
     @Override
@@ -113,6 +113,7 @@ public class CapsuleCollider extends Collider {
         contact.penetration = -(closestPoint.distance(otherPos) - (other.getRadius() + radius));
         contact.contactNormal.set(closestPoint).sub(otherPos).normalize();
         contact.contactPoint.set(contact.contactNormal).mul(radius).add(closestPoint);
+
         contact.setup(getRigidbody(), other.getRigidbody());
     }
 
@@ -127,11 +128,44 @@ public class CapsuleCollider extends Collider {
 
     @Override
     public boolean intersectsWith(BoxCollider other) {
-        return false;
+        Vector3f a = new Vector3f(startPoint);
+        Vector3f b = new Vector3f(endPoint);
+        getTransform().getTransMatrix().transformPosition(a);
+        getTransform().getTransMatrix().transformPosition(b);
+
+        Vector3f otherPos = other.getTransform().getWorldPosition();
+
+        Vector3f closestOnSegment = Intersectionf.findClosestPointOnLineSegment(
+                a.x(), a.y(), a.z(),
+                b.x(), b.y(), b.z(),
+                otherPos.x(), otherPos.y(), otherPos.z(),
+                new Vector3f());
+
+        // from closest on segment to closest on box
+        return Intersection.getDistanceSq(other, closestOnSegment) <= radius * radius;
     }
 
     @Override
     public void createCollision(BoxCollider other, ContactCache contactCache) {
+        Vector3f a = new Vector3f(startPoint);
+        Vector3f b = new Vector3f(endPoint);
+        getTransform().getTransMatrix().transformPosition(a);
+        getTransform().getTransMatrix().transformPosition(b);
 
+        Vector3f otherPos = other.getTransform().getWorldPosition();
+
+        Vector3f closestOnSegment = Intersectionf.findClosestPointOnLineSegment(
+                a.x(), a.y(), a.z(),
+                b.x(), b.y(), b.z(),
+                otherPos.x(), otherPos.y(), otherPos.z(),
+                new Vector3f());
+
+        Vector3f closestPoint = new Vector3f();
+        Contact contact = contactCache.getContact();
+        contact.penetration = radius * radius - Intersection.getDistanceSq(other, closestOnSegment, closestPoint);
+        contact.contactNormal.set(closestOnSegment).sub(closestPoint).normalize();
+        contact.contactPoint.set(closestPoint);
+
+        contact.setup(getRigidbody(), other.getRigidbody());
     }
 }

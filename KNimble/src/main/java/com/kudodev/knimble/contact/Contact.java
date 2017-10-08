@@ -17,6 +17,7 @@ package com.kudodev.knimble.contact;
 
 import com.kudodev.knimble.Rigidbody;
 import com.kudodev.knimble.RigidbodyTransform;
+import com.kudodev.knimble.Transform;
 import org.joml.Matrix3f;
 import org.joml.Vector3f;
 
@@ -379,13 +380,13 @@ public class Contact {
             // along the contact normal.
             linearChange[i].set(contactNormal).mul(linearMove[i]);
 
-            RigidbodyTransform transform = body[i].getTransform();
+            Transform transform = body[i].getTransform();
 
             transform.getLocalRotation().integrate(1, angularChange[i].x(), angularChange[i].y(), angularChange[i].z());
 
             // Apply the linear movement
             transform.getLocalPosition().fma(linearMove[i], contactNormal);
-            transform.setDirty();
+            transform.setDirty(true);
 
             // We need to calculate the derived data for any getBody that is
             // asleep, so that the changes are reflected in the object's

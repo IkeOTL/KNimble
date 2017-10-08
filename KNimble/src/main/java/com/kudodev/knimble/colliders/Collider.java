@@ -18,6 +18,7 @@ package com.kudodev.knimble.colliders;
 import com.kudodev.knimble.Rigidbody;
 import com.kudodev.knimble.RigidbodyTransform;
 import com.kudodev.knimble.contact.ContactCache;
+import com.kudodev.knimble.Transform;
 
 /**
  *
@@ -31,7 +32,7 @@ public abstract class Collider {
 
     private final ColliderType type;
     private final Rigidbody rigidbody;
-    private final RigidbodyTransform transform;
+    private final Transform transform;
 
     public Collider(ColliderType type, RigidbodyTransform transform) {
         this.type = type;
@@ -57,7 +58,7 @@ public abstract class Collider {
         return rigidbody;
     }
 
-    public RigidbodyTransform getTransform() {
+    public Transform getTransform() {
         return transform;
     }
 
