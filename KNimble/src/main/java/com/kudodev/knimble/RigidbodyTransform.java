@@ -24,12 +24,6 @@ import org.joml.Vector3f;
  */
 public class RigidbodyTransform extends Transform {
 
-    private final Vector3f position;
-    private final Quaternionf rotation;
-
-    private final Vector3f worldPosition = new Vector3f(0);
-    private final Quaternionf worldRotation = new Quaternionf();
-
     public RigidbodyTransform() {
         this(new Vector3f(0), new Quaternionf());
     }
@@ -39,61 +33,22 @@ public class RigidbodyTransform extends Transform {
     }
 
     public RigidbodyTransform(Vector3f p, Quaternionf r) {
-        position = p;
-        rotation = r;
-
-        setDirty();
-        updateTransform();
-    }
-
-    public void setPosition(float x, float y, float z) {
-        position.set(x, y, z);
-        setDirty();
+        // Rigidbodies have no need for scale
+        super(p, null, r);
+        worldScale = null;
     }
 
     @Override
-    public Vector3f getLocalPosition() {
-        return position;
-    }
-
-    @Override
-    public Quaternionf getLocalRotation() {
-        return rotation;
-    }
-
-    @Override
-    public Vector3f getLocalScale() {
-        return null;
-    }
-
-    public void rotate(float f, Vector3f v) {
-        rotation.rotateAxis(f, v);
-        setDirty();
-    }
-
-    @Override
-    public Vector3f getWorldPosition() {
-        updateTransform();
-        return worldPosition;
-    }
-
-    @Override
-    public Quaternionf getWorldRotation() {
-        updateTransform();
-        return worldRotation;
-    }
-
-    @Override
-    public Vector3f getWorldScale() {
-        return null;
-    }
-
-    @Override
-    protected void updateTransform() {
-        if (!isDirty) {
+    public void updateTransform(boolean force) {
+        if (!dirty && !force) {
             return;
         }
-        isDirty = false;
+        dirty = false;
+
+        if (parent != null) {
+            updateTransform(parent);
+            return;
+        }
 
         worldPosition.set(position);
         worldRotation.set(rotation);
@@ -105,12 +60,7 @@ public class RigidbodyTransform extends Transform {
     }
 
     @Override
-    protected void updateTransform(Transform parent) {
-        if (!isDirty) {
-            return;
-        }
-        isDirty = false;
-
+    public void updateTransform(Transform parent) {
         worldPosition.set(position);
         worldPosition.mulPosition(parent.getTransMatrix());
 
@@ -121,7 +71,5 @@ public class RigidbodyTransform extends Transform {
                 worldPosition.x(), worldPosition.y(), worldPosition.z(),
                 worldRotation.x(), worldRotation.y(), worldRotation.z(), worldRotation.w(),
                 1, 1, 1); // scaled mat4s ruin collision math
-
-        parent.getTransMatrix().mul(transMatrix, transMatrix);
     }
 }

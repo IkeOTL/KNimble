@@ -23,34 +23,131 @@ import org.joml.Vector3f;
  *
  * @author IkeOTL
  */
-public abstract class Transform {
+public class Transform {
 
-    protected boolean isDirty;
+    protected final Vector3f position;
+    protected final Vector3f scale;
+    protected final Quaternionf rotation;
+
+    protected Vector3f worldPosition = new Vector3f(0);
+    protected Vector3f worldScale = new Vector3f(1);
+    protected Quaternionf worldRotation = new Quaternionf();
+
+    protected Transform parent = null;
     protected final Matrix4f transMatrix = new Matrix4f();
+    protected boolean dirty;
+
+    public Transform() {
+        this(new Vector3f(0), new Vector3f(1), new Quaternionf());
+    }
+
+    public Transform(Vector3f p) {
+        this(p, new Vector3f(1), new Quaternionf());
+    }
+
+    public Transform(Vector3f p, Vector3f s, Quaternionf r) {
+        position = p;
+        scale = s;
+        rotation = r;
+
+        setDirty(true);
+    }
 
     public Matrix4f getTransMatrix() {
         updateTransform();
         return transMatrix;
     }
 
-    public void setDirty() {
-        isDirty = true;
+    public boolean isDirty() {
+        return dirty;
     }
 
-    public abstract Vector3f getLocalPosition();
+    public void setDirty(boolean b) {
+        dirty = b;
+    }
 
-    public abstract Vector3f getLocalScale();
+    public Transform getParent() {
+        return parent;
+    }
 
-    public abstract Quaternionf getLocalRotation();
+    public void setParent(Transform parent) {
+        this.parent = parent;
+        updateTransform(true);
+    }
 
-    public abstract Vector3f getWorldPosition();
+    public void setPosition(float x, float y, float z) {
+        position.set(x, y, z);
+        setDirty(true);
+    }
 
-    public abstract Vector3f getWorldScale();
+    public Vector3f getLocalPosition() {
+        return position;
+    }
 
-    public abstract Quaternionf getWorldRotation();
+    public Quaternionf getLocalRotation() {
+        return rotation;
+    }
 
-    protected abstract void updateTransform();
+    public Vector3f getLocalScale() {
+        return scale;
+    }
 
-    protected abstract void updateTransform(Transform t);
+    public void rotate(float f, Vector3f v) {
+        rotation.rotateAxis(f, v);
+        setDirty(true);
+    }
+
+    public Vector3f getWorldPosition() {
+        updateTransform();
+        return worldPosition;
+    }
+
+    public Quaternionf getWorldRotation() {
+        updateTransform();
+        return worldRotation;
+    }
+
+    public Vector3f getWorldScale() {
+        updateTransform();
+        return worldScale;
+    }
+
+    public void updateTransform() {
+        updateTransform(false);
+    }
+
+    public void updateTransform(boolean force) {
+        if (!dirty && !force) {
+            return;
+        }
+        dirty = false;
+
+        if (parent != null) {
+            updateTransform(parent);
+            return;
+        }
+
+        worldPosition.set(position);
+        worldRotation.set(rotation);
+        worldScale.set(scale);
+
+        transMatrix.translationRotateScale(worldPosition, worldRotation, worldScale);
+    }
+
+    public void updateTransform(Transform parent) {
+        worldPosition.set(position);
+        worldPosition.mulPosition(parent.getTransMatrix());
+
+        worldRotation.set(parent.getWorldRotation());
+        worldRotation.mul(rotation);
+
+        worldScale.set(scale);
+        Vector3f s = parent.getWorldScale();
+        if (s != null) {
+            worldScale.mul(s);
+        }
+
+        transMatrix.translationRotateScale(worldPosition, worldRotation, worldScale);
+    }
 
 }
