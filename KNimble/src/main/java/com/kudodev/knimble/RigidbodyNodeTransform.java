@@ -38,7 +38,6 @@ public class RigidbodyNodeTransform extends RigidbodyTransform {
 
     public RigidbodyNodeTransform(Vector3f p, Quaternionf r) {
         super(p, r);
-        worldScale = null;
     }
 
     public void addChild(Transform t) {
@@ -60,6 +59,11 @@ public class RigidbodyNodeTransform extends RigidbodyTransform {
         }
 
         super.updateTransform(true);
+
+        if (parent != null) {
+            return;
+        }
+
         for (int i = 0; i < children.size(); i++) {
             children.get(i).updateTransform(this);
         }
