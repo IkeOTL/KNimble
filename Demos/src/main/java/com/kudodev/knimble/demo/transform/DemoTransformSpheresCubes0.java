@@ -67,13 +67,14 @@ public class DemoTransformSpheresCubes0 extends RenderLoop {
         Collider cx0 = new SphereCollider(rx0);
         Shape child0 = new Shape(sphere, cx0);
         child0.getCollider().getTransform().setPosition(2, 0, 0);
-        n0.addChild(child0.getCollider().getTransform());
+        n0.addChild(n1);
         shapes.add(child0);
 
         Rigidbody rx1 = new Rigidbody(100);
         Collider cx1 = new SphereCollider(rx1);
         Shape child1 = new Shape(sphere, cx1);
-        child1.getCollider().getTransform().setPosition(0, 1, 0);
+        child1.getColor().set(1, 0, 1, 1);
+        child1.getCollider().getTransform().setPosition(0, 2, 0);
         n1.addChild(child1.getCollider().getTransform());
         shapes.add(child1);
 

@@ -13,6 +13,7 @@ sourceCompatibility = '1.8'
 
 repositories {
     mavenCentral();
+    
 }
 
 dependencies {
@@ -28,6 +29,25 @@ version = mavenVersion
 task sourcesJar(type: Jar, dependsOn: classes, description: 'Creates a jar from the source files.') {
     classifier = 'sources'
     from sourceSets.main.allSource
+}
+
+uploadArchives {
+    repositories {
+        mavenDeployer {
+            repository(url: "http://kudodev.com:8081/repository/maven-${mavenVersion.endsWith('-SNAPSHOT') ? 'snapshots' : 'releases' }/") {
+                authentication(userName: "admin", password: "")
+            }
+            pom.project {
+                licenses {
+                    license {
+                        name 'The Apache Software License, Version 2.0'
+                        url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                        distribution 'repo'
+                    }
+                }
+            }
+        }
+    }
 }
 
 artifacts {
