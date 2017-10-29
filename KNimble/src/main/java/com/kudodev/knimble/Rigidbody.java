@@ -28,7 +28,7 @@ import org.joml.Vector3f;
  */
 public class Rigidbody {
 
-    private final Transform transform;
+    private final RigidbodyTransform transform;
 
     private final Vector3f angularVelocity = new Vector3f(0);
     private final Vector3f linearVelocity = new Vector3f(0);
@@ -59,9 +59,10 @@ public class Rigidbody {
     private float friction = .9f;
     private float restitution = .03f;
 
-    public Rigidbody(Transform t, float mass) {
+    public Rigidbody(RigidbodyTransform t, float mass) {
         this.transform = t;
         setMass(mass);
+        t.setRigidbody(this);
     }
 
     public Rigidbody(float mass) {

@@ -70,6 +70,13 @@ public class Transform {
         return parent;
     }
 
+    public Transform getRootParent() {
+        if (parent == null) {
+            return this;
+        }
+        return parent.getRootParent();
+    }
+
     public void setParent(Transform parent) {
         this.parent = parent;
         updateTransform(true);

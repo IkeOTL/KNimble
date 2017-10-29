@@ -24,6 +24,8 @@ import org.joml.Vector3f;
  */
 public class RigidbodyTransform extends Transform {
 
+    private Rigidbody rigidbody;
+
     public RigidbodyTransform() {
         this(new Vector3f(0), new Quaternionf());
     }
@@ -36,6 +38,14 @@ public class RigidbodyTransform extends Transform {
         // Rigidbodies have no need for scale
         super(p, null, r);
         worldScale = null;
+    }
+
+    public Rigidbody getRigidbody() {
+        return rigidbody;
+    }
+
+    public void setRigidbody(Rigidbody rigidbody) {
+        this.rigidbody = rigidbody;
     }
 
     @Override

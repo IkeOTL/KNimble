@@ -16,7 +16,6 @@
 package com.kudodev.knimble.contact;
 
 import com.kudodev.knimble.Rigidbody;
-import com.kudodev.knimble.RigidbodyTransform;
 import com.kudodev.knimble.Transform;
 import org.joml.Matrix3f;
 import org.joml.Vector3f;

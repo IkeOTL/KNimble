@@ -27,6 +27,9 @@ import com.kudodev.knimble.colliders.SphereCollider;
 import com.kudodev.knimble.demo.utils.Mesh;
 import com.kudodev.knimble.demo.utils.Shape;
 import com.kudodev.knimble.demo.utils.shapes.ShapeUtils;
+import com.kudodev.knimble.generators.GravityForce;
+import com.kudodev.knimble.links.RigidbodyLink;
+import com.kudodev.knimble.links.RodLink;
 import java.util.ArrayList;
 import java.util.List;
 import org.joml.Vector3f;
@@ -35,14 +38,14 @@ import org.joml.Vector3f;
  *
  * @author IkeOTL
  */
-public class DemoTransformSpheresCubes0 extends RenderLoop {
+public class DemoTransformSpheresCubes02 extends RenderLoop {
 
-    public DemoTransformSpheresCubes0(String title, PhysicsSpace physicsSpace) {
+    public DemoTransformSpheresCubes02(String title, PhysicsSpace physicsSpace) {
         super(title, physicsSpace);
     }
 
     public static void main(String[] args) throws Exception {
-        new DemoTransformSpheresCubes0("Demo: Sphere/Cube Collision", new PhysicsSpace()).start();
+        new DemoTransformSpheresCubes02("Demo: Sphere/Cube Collision", new PhysicsSpace()).start();
     }
 
     @Override
@@ -51,6 +54,8 @@ public class DemoTransformSpheresCubes0 extends RenderLoop {
         Mesh sphere = ShapeUtils.createSphereMesh(2);
         List<Shape> shapes = new ArrayList<>();
 
+        physicsSpace.addForceGenerator(new GravityForce(0, -2, 0));
+
         RigidbodyNodeTransform n0 = new RigidbodyNodeTransform();
         Rigidbody r0 = new Rigidbody(n0, 1);
         Collider c0 = new SphereCollider(r0);
@@ -58,18 +63,21 @@ public class DemoTransformSpheresCubes0 extends RenderLoop {
         r0.setFriction(.8f);
         shapes.add(s0);
         s0.getColor().set(1, 0, 0, 1);
-        r0.setAngularVelocity(0, 0, 10);
-        r0.getTransform().setPosition(0, 0, -5f);
+//        r0.setAngularVelocity(0, 0, 10);
+        r0.getTransform().setPosition(0, 3, -5f);
         physicsSpace.addBody(r0, c0);
 
         RigidbodyNodeTransform n1 = new RigidbodyNodeTransform();
         Rigidbody rx0 = new Rigidbody(n1, 1);
         Collider cx0 = new SphereCollider(rx0);
         Shape child0 = new Shape(sphere, cx0);
-        child0.getCollider().getTransform().setPosition(2, 0, 0);
+        child0.getCollider().getTransform().setPosition(2, 2, 0);
         n0.addChild(n1);
         shapes.add(child0);
         physicsSpace.addBody(rx0, cx0);
+        
+         RigidbodyLink con0 = new RodLink(r0, rx0);
+        physicsSpace.addRigidbodyLink(con0);
 
         Rigidbody rx1 = new Rigidbody(1000);
         Collider cx1 = new SphereCollider(rx1);
@@ -79,14 +87,12 @@ public class DemoTransformSpheresCubes0 extends RenderLoop {
         n1.addChild(child1.getCollider().getTransform());
         shapes.add(child1);
 
-        Rigidbody r1 = new Rigidbody(100);
-        Collider c1 = new BoxCollider(r1);
+        Rigidbody r1 = new Rigidbody(0);
+        Collider c1 = new BoxCollider(r1, new Vector3f(50f, 1f, 50f));
         Shape s1 = new Shape(cube, c1);
         s1.getColor().set(0, 0, 1, 1);
         shapes.add(s1);
-        r1.getTransform().setPosition(5f, 0, -5);
-        r1.setLinearVelocity(-1f, 0, 0);
-        r1.getTransform().rotate((float) Math.toRadians(-45), new Vector3f(0, 1, 0));
+        r1.getTransform().setPosition(0, -2, -15);
         physicsSpace.addBody(r1, c1);
 
         return shapes;

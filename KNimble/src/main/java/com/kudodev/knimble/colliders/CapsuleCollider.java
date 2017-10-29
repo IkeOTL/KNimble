@@ -51,6 +51,10 @@ public class CapsuleCollider extends Collider {
         return endPoint;
     }
 
+    public float getRadius() {
+        return radius;
+    }
+
     @Override
     public void updateInertiaTensor() {
         if (getRigidbody() == null) {
@@ -58,24 +62,24 @@ public class CapsuleCollider extends Collider {
         }
 
         Matrix3f inertiaTensor = new Matrix3f();
-        float density = getRigidbody().getMass() / (float) (Math.PI * (radius * radius) * (4 * radius / 3 + length));
+        float density = getRigidbody().getMass() / (float) (Math.PI * (radius * radius) * (4 * radius * 0.3333f + length));
         float cM; // cylinder mass
         float hsM; // mass of hemispheres
         float rSq = radius * radius;
         cM = (float) Math.PI * length * rSq * density;
-        hsM = (float) (2f * Math.PI) * (1f / 3f) * rSq * radius * density;
+        hsM = (float) (2f * Math.PI) * 0.3333f * rSq * radius * density;
 
         // from cylinder
         inertiaTensor.m11(rSq * cM * 0.5f);
-        float m00 = inertiaTensor.m11() * 0.5f + cM * length * length * (1f / 12f);
+        float m00 = inertiaTensor.m11() * 0.5f + cM * length * length * 0.0833f;
         inertiaTensor.m00(m00);
         inertiaTensor.m22(m00);
 
         // from hemispheres
-        float temp0 = hsM * 2.0f * rSq / 5.0f;
+        float temp0 = hsM * 2.0f * rSq * 0.2f;
         inertiaTensor.m11(inertiaTensor.m11() + temp0 * 2.0f);
         float temp1 = length * 0.5f;
-        float temp2 = (temp0 + hsM * (temp1 * temp1 + 3.0f * (1f / 8f) * length * radius)) * 2f;
+        float temp2 = (temp0 + hsM * (temp1 * temp1 + 3.0f * 0.125f * length * radius)) * 2f;
         inertiaTensor.m00(inertiaTensor.m00() + temp2);
         inertiaTensor.m22(inertiaTensor.m22() + temp2);
 
@@ -119,11 +123,51 @@ public class CapsuleCollider extends Collider {
 
     @Override
     public boolean intersectsWith(CapsuleCollider other) {
-        return false;
+        Vector3f a0 = new Vector3f(startPoint);
+        Vector3f b0 = new Vector3f(endPoint);
+        getTransform().getTransMatrix().transformPosition(a0);
+        getTransform().getTransMatrix().transformPosition(b0);
+
+        Vector3f a1 = new Vector3f(other.getStartPoint());
+        Vector3f b1 = new Vector3f(other.getEndPoint());
+        other.getTransform().getTransMatrix().transformPosition(a1);
+        other.getTransform().getTransMatrix().transformPosition(b1);
+
+        Vector3f closest0 = new Vector3f();
+        Vector3f closest1 = new Vector3f();
+        float dist2 = Intersectionf.findClosestPointsLineSegments(a0.x(), a0.y(), a0.z(), b0.x(), b0.y(), b0.z(), a1.x(), a1.y(), a1.z(), b1.x(), a1.y(), a1.z(), closest0, closest1);
+
+        float radiusSum = other.getRadius() + radius;
+        return dist2 <= radiusSum * radiusSum;
     }
 
     @Override
     public void createCollision(CapsuleCollider other, ContactCache contactCache) {
+        Vector3f a0 = new Vector3f(startPoint);
+        Vector3f b0 = new Vector3f(endPoint);
+        getTransform().getTransMatrix().transformPosition(a0);
+        getTransform().getTransMatrix().transformPosition(b0);
+
+        Vector3f a1 = new Vector3f(other.getStartPoint());
+        Vector3f b1 = new Vector3f(other.getEndPoint());
+        other.getTransform().getTransMatrix().transformPosition(a1);
+        other.getTransform().getTransMatrix().transformPosition(b1);
+
+        Vector3f closest0 = new Vector3f();
+        Vector3f closest1 = new Vector3f();
+        float dist2 = Intersectionf.findClosestPointsLineSegments(
+                a0.x(), a0.y(), a0.z(),
+                b0.x(), b0.y(), b0.z(),
+                a1.x(), a1.y(), a1.z(),
+                b1.x(), a1.y(), a1.z(),
+                closest0, closest1);
+
+        Contact contact = contactCache.getContact();
+        contact.penetration = -((float) Math.sqrt(dist2) - (other.getRadius() + radius));
+        contact.contactNormal.set(closest0).sub(closest1).normalize();
+        contact.contactPoint.set(contact.contactNormal).mul(radius).add(closest0);
+
+        contact.setup(getRigidbody(), other.getRigidbody());
     }
 
     @Override

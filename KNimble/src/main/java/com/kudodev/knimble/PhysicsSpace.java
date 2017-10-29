@@ -32,7 +32,7 @@ public class PhysicsSpace {
     private final List<Rigidbody> rigidbodies = new ArrayList<>();
     private final List<Collider> colliders = new ArrayList<>();
 
-    private final ContactCache contactCache = new ContactCache(256);
+    private final ContactCache contactCache = new ContactCache(1024);
     private final ContactResolver contactResolver = new ContactResolver();
     private final List<RigidbodyLink> rigidbodyLinks = new ArrayList<>();
     private final List<ForceGenerator> forceGenerators = new ArrayList<>();

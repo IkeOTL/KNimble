@@ -22,8 +22,18 @@ import org.lwjgl.system.*;
 import java.nio.*;
 import java.util.List;
 import org.joml.Matrix4f;
+import org.lwjgl.BufferUtils;
 import static org.lwjgl.glfw.Callbacks.*;
 import static org.lwjgl.glfw.GLFW.*;
+import org.lwjgl.nanovg.NVGColor;
+import org.lwjgl.nanovg.NanoVG;
+import static org.lwjgl.nanovg.NanoVG.NVG_ALIGN_LEFT;
+import static org.lwjgl.nanovg.NanoVG.NVG_ALIGN_MIDDLE;
+import static org.lwjgl.nanovg.NanoVG.nvgCreateFont;
+import static org.lwjgl.nanovg.NanoVG.nvgRestore;
+import org.lwjgl.nanovg.NanoVGGL3;
+import static org.lwjgl.nanovg.NanoVGGL3.NVG_ANTIALIAS;
+import static org.lwjgl.nanovg.NanoVGGL3.NVG_STENCIL_STROKES;
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.system.MemoryStack.*;
 import static org.lwjgl.system.MemoryUtil.*;
@@ -36,24 +46,31 @@ public abstract class RenderLoop {
 
     // The window handle
     private long window;
+    private boolean vsync;
     private final int windowWidth = 1600;
     private final int windowHeight = 900;
     private final float FOV = (float) Math.toRadians(60.0f);
     private final float Z_NEAR = 0.01f;
     private final float Z_FAR = 1000.f;
 
-    private long lastFrame;
+    private double lastFrame;
     private int currFPS, FPS;
-    private float FPSTime;
+    private float fpsTime;
 
     private boolean wireframe = true;
 
     private final String title;
+    protected Camera camera = new Camera();
     protected final PhysicsSpace physicsSpace;
     protected List<Shape> shapes;
 
     public RenderLoop(String title, PhysicsSpace physicsSpace) {
+        this(title, physicsSpace, true);
+    }
+
+    public RenderLoop(String title, PhysicsSpace physicsSpace, boolean vsync) {
         this.title = title;
+        this.vsync = vsync;
         this.physicsSpace = physicsSpace;
     }
 
@@ -63,29 +80,31 @@ public abstract class RenderLoop {
 
     private void loop() throws Exception {
         ShaderProgram shaderProgram = new ShaderProgram();
-        Camera camera = new Camera();
 
-//        camera.getPosition().set(0, 5, 5f);
-//        camera.getRotation().rotate((float) Math.toRadians(90), 0, 0);
         float aspectRatio = (float) windowWidth / windowHeight;
         Matrix4f projMat = new Matrix4f().perspective(FOV, aspectRatio, Z_NEAR, Z_FAR);
-//        Matrix4f projMat = new Matrix4f().ortho(0, windowWidth, windowHeight, 0, -1, 1);
-
         Matrix4f viewMat = new Matrix4f();
         Matrix4f projViewMat = new Matrix4f();
 
+        Matrix4f modelMat = new Matrix4f();
+
         shapes = init(physicsSpace);
 
-        lastFrame = System.nanoTime();
+        long vg = NanoVGGL3.nvgCreate(0);
+        NVGColor color = NVGColor.create().r(1).g(1).b(1).a(1);
+        nvgCreateFont(vg, "mono", "./assets/fonts/MOZART_0.ttf");
+        NanoVG.nvgFontFace(vg, "mono");
+
+        glfwSetTime(0);
+        lastFrame = glfwGetTime();
         float delta;
-        long newTime;
-        Matrix4f modelMat = new Matrix4f();
+        double newTime;
         while (!glfwWindowShouldClose(window)) {
-            newTime = System.nanoTime();
-            delta = (newTime - lastFrame) / 1000000000f;
+            newTime = glfwGetTime();
+            delta = (float) (newTime - lastFrame);
             lastFrame = newTime;
 
-            glfwPollEvents();
+            updateFPS(delta);
 
             update(delta);
             physicsSpace.tick(delta);
@@ -100,7 +119,6 @@ public abstract class RenderLoop {
             }
 
             shaderProgram.bind();
-
             camera.getViewMatrix(viewMat);
             shaderProgram.setUniform("projViewMat", projMat.mul(viewMat, projViewMat));
             for (Shape s : shapes) {
@@ -108,11 +126,29 @@ public abstract class RenderLoop {
                 shaderProgram.setUniform("outColor", s.getColor());
                 s.getMesh().render();
             }
-
             shaderProgram.unbind();
 
-            // render here
+            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+            NanoVG.nvgBeginFrame(vg, windowWidth, windowHeight, 1);
+            NanoVG.nvgFontSize(vg, 20.0f);
+            NanoVG.nvgFillColor(vg, color);
+            NanoVG.nvgText(vg, 5, 15, String.format("FPS: %d", FPS));
+            NanoVG.nvgEndFrame(vg);
+
             glfwSwapBuffers(window);
+            glfwPollEvents();
+        }
+
+        // dispose
+    }
+
+    private void updateFPS(float delta) {
+        fpsTime += delta;
+        ++currFPS;
+        if (fpsTime >= 1) {
+            FPS = currFPS;
+            currFPS = 0;
+            fpsTime = 0;
         }
     }
 
@@ -171,7 +207,7 @@ public abstract class RenderLoop {
         }
 
         glfwMakeContextCurrent(window);
-        glfwSwapInterval(GLFW_TRUE); // vsync
+        glfwSwapInterval(vsync ? GLFW_TRUE : GLFW_FALSE); // vsync
         glfwShowWindow(window);
 
         GL.createCapabilities();

@@ -25,6 +25,7 @@ import com.kudodev.knimble.colliders.SphereCollider;
 import com.kudodev.knimble.demo.utils.Mesh;
 import com.kudodev.knimble.demo.utils.Shape;
 import com.kudodev.knimble.demo.utils.shapes.ShapeUtils;
+import com.kudodev.knimble.generators.GravityForce;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
@@ -50,6 +51,9 @@ public class DemoStressTest0 extends RenderLoop {
 
     @Override
     protected List<Shape> init(PhysicsSpace physicsSpace) {
+        camera.getPosition().set(0, 5, 0);
+        camera.getRotation().rotateAxis((float)Math.toRadians(20), new Vector3f(1, 0, 0));
+
         cube = ShapeUtils.createCubeMesh();
         sphere = ShapeUtils.createSphereMesh(2);
         capsule = ShapeUtils.createCapsuleMesh(1.5f, .5f);
@@ -62,6 +66,8 @@ public class DemoStressTest0 extends RenderLoop {
         shapes.add(s1);
         r1.getTransform().setPosition(0, -2, -15);
         physicsSpace.addBody(r1, c1);
+
+        physicsSpace.addForceGenerator(new GravityForce(0, -10, 0));
 
         return shapes;
     }
@@ -80,14 +86,14 @@ public class DemoStressTest0 extends RenderLoop {
 
         int i = ThreadLocalRandom.current().nextInt(3);
         switch (i) {
-            case 0:
-                c0 = new BoxCollider(r0);
-                s0 = new Shape(cube, c0);
-                break;
+//            case 0:
+//                c0 = new BoxCollider(r0);
+//                s0 = new Shape(cube, c0);
+//                break;
             case 1:
-                c0 = new CapsuleCollider(r0, 1.5f, .5f);
-                s0 = new Shape(capsule, c0);
-                break;
+//                c0 = new CapsuleCollider(r0, 1.5f, .5f);
+//                s0 = new Shape(capsule, c0);
+//                break;
             default:
                 c0 = new SphereCollider(r0);
                 s0 = new Shape(sphere, c0);
@@ -97,9 +103,8 @@ public class DemoStressTest0 extends RenderLoop {
         shapes.add(s0);
         s0.getColor().set((float) Math.random(), (float) Math.random(), (float) Math.random(), 1);
         r0.setRestitution((float) Math.random() * .9f);
-//        r0.getTransform().setPosition(0, 5, (float) Math.random() - 15f);
-        r0.getTransform().setPosition((float) Math.random(), 5, (float) Math.random() - 15f);
-        r0.addLinearAcceleration(0, -10, 0);
+        r0.getTransform().setPosition((float) Math.random(), 5,  -15f);
+//        r0.getTransform().setPosition((float) Math.random(), 5, (float) Math.random() - 15f);
         physicsSpace.addBody(r0, c0);
         time = 0;
     }

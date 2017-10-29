@@ -16,6 +16,7 @@
 package com.kudodev.knimble.colliders;
 
 import com.kudodev.knimble.Rigidbody;
+import com.kudodev.knimble.RigidbodyNodeTransform;
 import com.kudodev.knimble.contact.Contact;
 import com.kudodev.knimble.contact.ContactCache;
 import org.joml.Matrix3f;
