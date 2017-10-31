@@ -114,9 +114,9 @@ public class CapsuleCollider extends Collider {
                 new Vector3f());
 
         Contact contact = contactCache.getContact();
-        contact.penetration = -(closestPoint.distance(otherPos) - (other.getRadius() + radius));
-        contact.contactNormal.set(closestPoint).sub(otherPos).normalize();
-        contact.contactPoint.set(contact.contactNormal).mul(radius).add(closestPoint);
+        contact.setPenetration(-(closestPoint.distance(otherPos) - (other.getRadius() + radius)));
+        contact.setContactNormal(closestPoint).sub(otherPos).normalize();
+        contact.setContactPoint(contact.getContactNormal()).mul(radius).add(closestPoint);
 
         contact.setup(getRigidbody(), other.getRigidbody());
     }
@@ -163,9 +163,9 @@ public class CapsuleCollider extends Collider {
                 closest0, closest1);
 
         Contact contact = contactCache.getContact();
-        contact.penetration = -((float) Math.sqrt(dist2) - (other.getRadius() + radius));
-        contact.contactNormal.set(closest0).sub(closest1).normalize();
-        contact.contactPoint.set(contact.contactNormal).mul(radius).add(closest0);
+        contact.setPenetration(-((float) Math.sqrt(dist2) - (other.getRadius() + radius)));
+        contact.setContactNormal(closest0).sub(closest1).normalize();
+        contact.setContactPoint(contact.getContactNormal()).mul(radius).add(closest0);
 
         contact.setup(getRigidbody(), other.getRigidbody());
     }
@@ -206,10 +206,9 @@ public class CapsuleCollider extends Collider {
 
         Vector3f closestPoint = new Vector3f();
         Contact contact = contactCache.getContact();
-        contact.penetration = radius * radius - Intersection.getDistanceSq(other, closestOnSegment, closestPoint);
-        contact.contactNormal.set(closestOnSegment).sub(closestPoint).normalize();
-        contact.contactPoint.set(closestPoint);
-
+        contact.setPenetration(radius * radius - Intersection.getDistanceSq(other, closestOnSegment, closestPoint));
+        contact.setContactNormal(closestOnSegment).sub(closestPoint).normalize();
+        contact.setContactPoint(closestPoint);
         contact.setup(getRigidbody(), other.getRigidbody());
     }
 }

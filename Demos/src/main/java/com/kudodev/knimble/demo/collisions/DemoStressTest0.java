@@ -52,7 +52,7 @@ public class DemoStressTest0 extends RenderLoop {
     @Override
     protected List<Shape> init(PhysicsSpace physicsSpace) {
         camera.getPosition().set(0, 5, 0);
-        camera.getRotation().rotateAxis((float)Math.toRadians(20), new Vector3f(1, 0, 0));
+        camera.getRotation().rotateAxis((float) Math.toRadians(20), new Vector3f(1, 0, 0));
 
         cube = ShapeUtils.createCubeMesh();
         sphere = ShapeUtils.createSphereMesh(2);
@@ -79,31 +79,33 @@ public class DemoStressTest0 extends RenderLoop {
         if (time < .5f) {
             return;
         }
-        Rigidbody r0 = new Rigidbody(1);
+        Rigidbody r0 = new Rigidbody(100);
 
         Collider c0;
         Shape s0;
 
         int i = ThreadLocalRandom.current().nextInt(3);
         switch (i) {
-//            case 0:
-//                c0 = new BoxCollider(r0);
-//                s0 = new Shape(cube, c0);
+            case 0:
+//                c0 = new SphereCollider(r0);
+//                s0 = new Shape(sphere, c0);
 //                break;
             case 1:
 //                c0 = new CapsuleCollider(r0, 1.5f, .5f);
 //                s0 = new Shape(capsule, c0);
 //                break;
             default:
-                c0 = new SphereCollider(r0);
-                s0 = new Shape(sphere, c0);
+                c0 = new BoxCollider(r0);
+                s0 = new Shape(cube, c0);
                 break;
         }
 
         shapes.add(s0);
         s0.getColor().set((float) Math.random(), (float) Math.random(), (float) Math.random(), 1);
-        r0.setRestitution((float) Math.random() * .9f);
-        r0.getTransform().setPosition((float) Math.random(), 5,  -15f);
+//        r0.setRestitution((float) Math.random() * .9f);
+        r0.setRestitution(0);
+        r0.setFriction(1);
+        r0.getTransform().setPosition((int) (Math.random() * 10), 5, -15f);
 //        r0.getTransform().setPosition((float) Math.random(), 5, (float) Math.random() - 15f);
         physicsSpace.addBody(r0, c0);
         time = 0;

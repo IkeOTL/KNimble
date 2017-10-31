@@ -50,7 +50,7 @@ public class Rigidbody {
     private float linearDamping = 0.99f;
     private float angularDamping = 0.8f;
 
-    private float sleepEpsilon = .001f;
+    private float sleepEpsilon = .01f;
     private float motion = sleepEpsilon * 2f;
     private boolean canSleep = true;
     private boolean awake = true;
@@ -95,9 +95,7 @@ public class Rigidbody {
 
         // apply to transform
         transform.getLocalPosition().fma(delta, linearVelocity);
-
         transform.getLocalRotation().integrate(delta, angularVelocity.x(), angularVelocity.y(), angularVelocity.z());
-
         transform.setDirty(true);
 
         calculateIITWorld();

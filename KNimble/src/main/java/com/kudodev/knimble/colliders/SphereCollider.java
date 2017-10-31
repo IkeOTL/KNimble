@@ -87,9 +87,9 @@ public class SphereCollider extends Collider {
         Vector3f pos1 = other.getTransform().getWorldPosition();
 
         Contact contact = contactCache.getContact();
-        contact.penetration = -Intersection.getDistance(this, other);
-        contact.contactNormal.set(pos0).sub(pos1).normalize();
-        contact.contactPoint.set(contact.contactNormal).mul(radius).add(pos1);
+        contact.setPenetration(-Intersection.getDistance(this, other));
+        contact.setContactNormal(pos0).sub(pos1).normalize();
+        contact.setContactPoint(contact.getContactNormal()).mul(radius).add(pos1);
 
         contact.setup(getRigidbody(), other.getRigidbody());
     }
@@ -101,9 +101,9 @@ public class SphereCollider extends Collider {
         Vector3f pos = getTransform().getWorldPosition();
 
         Contact contact = contactCache.getContact();
-        contact.penetration = radius * radius - Intersection.getDistanceSq(other, pos, closestPoint);
-        contact.contactNormal.set(pos).sub(closestPoint).normalize();
-        contact.contactPoint.set(closestPoint);
+        contact.setPenetration(radius * radius - Intersection.getDistanceSq(other, pos, closestPoint));
+        contact.setContactNormal(pos).sub(closestPoint).normalize();
+        contact.setContactPoint(closestPoint);
 
         contact.setup(getRigidbody(), other.getRigidbody());
     }

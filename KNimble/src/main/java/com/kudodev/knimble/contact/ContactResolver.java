@@ -26,8 +26,8 @@ public class ContactResolver {
     private int velocityIterations;
     private int positionIterations;
 
-    private float velocityEpsilon = 0.005f;
-    private float positionEpsilon = 0.005f;
+    private float velocityEpsilon = 0.001f;
+    private float positionEpsilon = 0.001f;
 
     private int velocityIterationsUsed = 0;
     private int positionIterationsUsed = 0;
@@ -101,10 +101,10 @@ public class ContactResolver {
      * as a bound: if you specify a large number, sometimes the algorithm WILL
      * use it, and you may drop lots of frames.
      *
-     * @param duration The duration of the previous integration step. This is
-     * used to compensate for forces applied.
+     * @param delta The duration of the previous integration step. This is used
+     * to compensate for forces applied.
      */
-    public void resolveContacts(ContactCache contactCache, float duration) {
+    public void resolveContacts(ContactCache contactCache, float delta) {
         int numContacts = contactCache.getContactCount();
         Contact[] contacts = contactCache.getContacts();
         // Make sure we have something to do. 
@@ -118,14 +118,14 @@ public class ContactResolver {
         // Prepare the contacts for processing 
         for (int i = 0; i < numContacts; i++) {
             // Calculate the internal contact data (inertia, basis, etc). 
-            contacts[i].calculateInternals(duration);
+            contacts[i].tick(delta);
         }
 
         // Resolve the interpenetration problems with the contacts. 
-        adjustPositions(contacts, numContacts, duration);
+        adjustPositions(contacts, numContacts, delta);
 
         // Resolve the velocity problems with the contacts. 
-        adjustVelocities(contacts, numContacts, duration);
+        adjustVelocities(contacts, numContacts, delta);
     }
 
     /**
@@ -149,8 +149,8 @@ public class ContactResolver {
             max = positionEpsilon;
             index = numContacts;
             for (i = 0; i < numContacts; i++) {
-                if (c[i].penetration > max) {
-                    max = c[i].penetration;
+                if (c[i].getPenetration() > max) {
+                    max = c[i].getPenetration();
                     index = i;
                 }
             }
@@ -186,7 +186,7 @@ public class ContactResolver {
                         // dealing with the second getBody in a contact
                         // and negative otherwise (because we're
                         // subtracting the resolution)..
-                        c[i].penetration += (deltaPosition.dot(c[i].contactNormal) * (b != 0 ? 1 : -1));
+                        c[i].addPenetration(deltaPosition.dot(c[i].getContactNormal()) * (b != 0 ? 1 : -1));
                     }
                 }
             }

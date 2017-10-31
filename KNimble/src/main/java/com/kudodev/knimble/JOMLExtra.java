@@ -15,6 +15,7 @@
  */
 package com.kudodev.knimble;
 
+import org.joml.Matrix3f;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 
@@ -54,6 +55,13 @@ public class JOMLExtra {
             case 3:
                 dest.set(m.m30(), m.m31(), m.m32());
                 break;
+        }
+        return dest;
+    }
+
+    public static Matrix3f setColumn(Matrix3f dest, int i, Vector3f v) {
+        for (int j = 0; j < 3; j++) {
+            dest.set(i, j, v.get(j));
         }
         return dest;
     }

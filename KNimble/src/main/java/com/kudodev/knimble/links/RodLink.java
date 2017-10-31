@@ -57,15 +57,15 @@ public class RodLink extends RigidbodyLink {
 
         // The contact normal depends on whether we're extending or compressing
         if (currentLength > length) {
-            contact.contactNormal.set(d).normalize();
-            contact.contactPoint.set(rigidbodies[0].getTransform().getWorldPosition())
+            contact.setContactNormal(d).normalize();
+            contact.setContactPoint(rigidbodies[0].getTransform().getWorldPosition())
                     .add(rigidbodies[1].getTransform().getWorldPosition()).mul(0.5f);
-            contact.penetration = currentLength - length;
+            contact.setPenetration(currentLength - length);
         } else {
-            contact.contactNormal.set(d).normalize().mul(-1);
-            contact.contactPoint.set(rigidbodies[0].getTransform().getWorldPosition())
+            contact.setContactNormal(d).normalize().mul(-1);
+            contact.setContactPoint(rigidbodies[0].getTransform().getWorldPosition())
                     .add(rigidbodies[1].getTransform().getWorldPosition()).mul(0.5f);
-            contact.penetration = length - currentLength;
+            contact.setPenetration(length - currentLength);
         }
     }
 }

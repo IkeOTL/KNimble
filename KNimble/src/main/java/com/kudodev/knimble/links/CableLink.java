@@ -63,10 +63,10 @@ public class CableLink extends RigidbodyLink {
         }
 
         Contact contact = cData.getContact();
-        contact.contactNormal.set(d).normalize();
-        contact.contactPoint.set(rigidbodies[0].getTransform().getWorldPosition())
+        contact.setContactNormal(d).normalize();
+        contact.setContactPoint(rigidbodies[0].getTransform().getWorldPosition())
                 .add(rigidbodies[1].getTransform().getWorldPosition()).mul(0.5f);
-        contact.penetration = currentLength - length;
+        contact.setPenetration(currentLength - length);
         contact.setup(rigidbodies[0], rigidbodies[1], 1, restitution);
     }
 }

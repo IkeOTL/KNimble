@@ -248,10 +248,9 @@ public class BoxCollider extends Collider {
 
         // We can fill the contact.
         Contact contact = contactCache.getContact();
-
-        contact.penetration = penData.penetration;
-        contact.contactNormal.set(axis);
-        contact.contactPoint.set(vertex);
+        contact.setPenetration(penData.penetration);
+        contact.setContactNormal(axis);
+        contact.setContactPoint(vertex);
         contact.setup(getRigidbody(), other.getRigidbody());
     }
 
@@ -298,20 +297,20 @@ public class BoxCollider extends Collider {
         // Work out which vertex of box two we're colliding with.
         // Using toCentre doesn't work!   
         // Create the contact data
-        contact.contactPoint.set(two.getExtents());
+        contact.setContactPoint(two.getExtents());
         if (t.m00() * normal.x() + t.m01() * normal.y() + t.m02() * normal.z() < 0) {
-            contact.contactPoint.x = -contact.contactPoint.x();
+            contact.getContactPoint().x = -contact.getContactPoint().x();
         }
         if (t.m10() * normal.x() + t.m11() * normal.y() + t.m12() * normal.z() < 0) {
-            contact.contactPoint.y = -contact.contactPoint.y();
+            contact.getContactPoint().y = -contact.getContactPoint().y();
         }
         if (t.m20() * normal.x() + t.m21() * normal.y() + t.m22() * normal.z() < 0) {
-            contact.contactPoint.z = -contact.contactPoint.z();
+            contact.getContactPoint().z = -contact.getContactPoint().z();
         }
-        t.transformPosition(contact.contactPoint);
+        t.transformPosition(contact.getContactPoint());
 
-        contact.contactNormal.set(normal);
-        contact.penetration = pen;
+        contact.setContactNormal(normal);
+        contact.setPenetration(pen);
         contact.setup(one.getRigidbody(), two.getRigidbody());
     }
 

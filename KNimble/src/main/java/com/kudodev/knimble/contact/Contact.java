@@ -15,6 +15,7 @@
  */
 package com.kudodev.knimble.contact;
 
+import com.kudodev.knimble.JOMLExtra;
 import com.kudodev.knimble.Rigidbody;
 import com.kudodev.knimble.Transform;
 import org.joml.Matrix3f;
@@ -27,29 +28,29 @@ import org.joml.Vector3f;
 public class Contact {
 
     private final Rigidbody[] body = new Rigidbody[2];
+    private final Vector3f[] localContactPoint = {new Vector3f(), new Vector3f()};
 
-    private final Vector3f[] relativeContactPosition = {new Vector3f(), new Vector3f()};
     private final Matrix3f contactToWorld = new Matrix3f();
-    private final Vector3f contactVelocity = new Vector3f();
+    private final Vector3f localContactVelocity = new Vector3f();
     private float desiredDeltaVelocity;
 
     private float friction;
     private float restitution;
 
-    public final Vector3f contactPoint = new Vector3f();
-    public final Vector3f contactNormal = new Vector3f();
-    public float penetration;
+    private final Vector3f worldContactPoint = new Vector3f();
+    private final Vector3f contactNormal = new Vector3f();
+    private float penetration;
 
     protected Rigidbody getBody(int i) {
         return body[i];
     }
 
     protected Vector3f getRelativeContactPosition(int i) {
-        return relativeContactPosition[i];
+        return localContactPoint[i];
     }
 
     protected Vector3f getContactVelocity() {
-        return contactVelocity;
+        return localContactVelocity;
     }
 
     protected Matrix3f getContactToWorld() {
@@ -60,10 +61,38 @@ public class Contact {
         return desiredDeltaVelocity;
     }
 
+    public Vector3f getContactPoint() {
+        return worldContactPoint;
+    }
+
+    public Vector3f setContactPoint(Vector3f v) {
+        return worldContactPoint.set(v);
+    }
+
+    public Vector3f getContactNormal() {
+        return contactNormal;
+    }
+
+    public Vector3f setContactNormal(Vector3f v) {
+        return contactNormal.set(v);
+    }
+
+    public float getPenetration() {
+        return penetration;
+    }
+
+    public void addPenetration(float p) {
+        penetration += p;
+    }
+
+    public void setPenetration(float penetration) {
+        this.penetration = penetration;
+    }
+
     public void setup(Rigidbody a, Rigidbody b) {
         setup(a, b,
-                (a.getFriction() + b.getFriction()) * .5f,
-                (a.getRestitution() + b.getRestitution()) * .5f);
+                (float) Math.sqrt(a.getFriction() * b.getFriction()),
+                Math.max(a.getRestitution(), b.getRestitution()));
     }
 
     public void setup(Rigidbody a, Rigidbody b, float friction, float restitution) {
@@ -73,7 +102,7 @@ public class Contact {
         this.restitution = restitution;
     }
 
-    protected void calculateInternals(float duration) {
+    protected void tick(float delta) {
         // Check if the first object is NULL, and swap if it is.
         if (body[0] == null) {
             swapBodies();
@@ -83,29 +112,41 @@ public class Contact {
         }
 
         // Calculate an setup of axis at the contact point.
-        calculateContactBasis();
+        calculateContactBasis(contactToWorld, contactNormal);
 
         // Store the relative position of the contact relative to each getBody
-        relativeContactPosition[0].set(contactPoint).sub(body[0].getTransform().getWorldPosition());
-        if (body[1] != null) {
-            relativeContactPosition[1].set(contactPoint).sub(body[1].getTransform().getWorldPosition());
-        }
+        calculateLocal(delta, localContactPoint, worldContactPoint, localContactVelocity);
 
-        // Find the relative velocity of the bodies at the contact point.
-        contactVelocity.set(calculateLocalVelocity(0, duration));
-        if (body[1] != null) {
-            contactVelocity.sub(calculateLocalVelocity(1, duration));
-        }
         // Calculate the desired change in velocity for resolution
-        calculateDesiredDeltaVelocity(duration);
+        calculateDesiredDeltaVelocity(delta);
     }
 
-    /**
-     * Reverses the contact. This involves swapping the two rigid bodies and
-     * reversing the contact normal. The internal values should then be
-     * recalculated using calculateInternals (this is not done automatically).
-     */
-    protected void swapBodies() {
+    private void calculateLocal(float delta, Vector3f[] localContactPoint, Vector3f contactPoint, Vector3f localContactVelocity) {
+        Vector3f out = new Vector3f();
+        localContactPoint[0].set(contactPoint).sub(body[0].getTransform().getWorldPosition());
+        localContactVelocity.set(calculateLocalVelocity(body[0], localContactPoint[0], delta, out));
+
+        if (body[1] != null) {
+            localContactPoint[1].set(contactPoint).sub(body[1].getTransform().getWorldPosition());
+            localContactVelocity.sub(calculateLocalVelocity(body[1], localContactPoint[1], delta, out));
+        }
+    }
+
+    private Vector3f calculateLocalVelocity(Rigidbody thisBody, Vector3f contactPoint, float duration, Vector3f contactVelocity) {
+        contactVelocity.set(thisBody.getAngularVelocity()).cross(contactPoint);
+        contactVelocity.add(thisBody.getLinearVelocity());
+        contactVelocity.mulTranspose(contactToWorld);
+
+        Vector3f accVelocity = new Vector3f(thisBody.getLastFrameLinearAcceleration()).mul(duration);
+        accVelocity.mulTranspose(contactToWorld);
+        accVelocity.x = 0;
+
+        contactVelocity.add(accVelocity);
+
+        return contactVelocity;
+    }
+
+    private void swapBodies() {
         contactNormal.mul(-1);
 
         Rigidbody temp = body[0];
@@ -113,11 +154,6 @@ public class Contact {
         body[1] = temp;
     }
 
-    /**
-     * Updates the awake state of rigid bodies that are taking place in the
-     * given contact. A getBody will be made awake if it is in contact with a
-     * getBody that is awake.
-     */
     protected void matchAwakeState() {
         // Collisions with the world never cause a getBody to wake up. 
         if (body[1] == null) {
@@ -136,9 +172,6 @@ public class Contact {
         }
     }
 
-    /**
-     * Calculates and sets the internal value for the desired delta velocity.
-     */
     protected void calculateDesiredDeltaVelocity(float duration) {
         float velocityLimit = (float) 0.25f;
 
@@ -153,57 +186,22 @@ public class Contact {
         if (body[1] != null && body[1].isAwake()) {
             velocityFromAcc -= temp.set(body[1].getLastFrameLinearAcceleration()).mul(duration).dot(contactNormal);
         }
+
         // If the velocity is very slow, limit the restitution
         float thisRestitution = restitution;
-        if (Math.abs(contactVelocity.x()) < velocityLimit) {
+        if (Math.abs(localContactVelocity.x()) < velocityLimit) {
             thisRestitution = 0.0f;
         }
 
         // Combine the bounce velocity with the removed
         // acceleration velocity.
-        desiredDeltaVelocity = -contactVelocity.x() - thisRestitution * (contactVelocity.x() - velocityFromAcc);
+        desiredDeltaVelocity = -localContactVelocity.x() - thisRestitution * (localContactVelocity.x() - velocityFromAcc);
     }
 
-    /**
-     * Calculates and returns the velocity of the contact point on the given
-     * getBody.
-     */
-    private Vector3f calculateLocalVelocity(int bodyIndex, float duration) {
-        Rigidbody thisBody = body[bodyIndex];
-
-        // Work out the velocity of the contact point.
-        Vector3f contactVelocity = new Vector3f();
-        contactVelocity.set(thisBody.getAngularVelocity()).cross(relativeContactPosition[bodyIndex]);
-        contactVelocity.add(thisBody.getLinearVelocity());
-
-        // Turn the velocity into contact-coordinates.
-        contactVelocity.mulTranspose(contactToWorld);
-
-        // Calculate the ammount of velocity that is due to forces without
-        // reactions.
-        Vector3f accVelocity = new Vector3f(thisBody.getLastFrameLinearAcceleration()).mul(duration);
-
-        // Calculate the velocity in contact-coordinates.
-        accVelocity.mulTranspose(contactToWorld);
-
-        // We ignore any component of acceleration in the contact normal
-        // direction, we are only interested in planar acceleration
-        accVelocity.x = 0;
-
-        // Add the planar velocities - if there's enough friction they will
-        // be removed during velocity resolution
-        contactVelocity.add(accVelocity);
-        return contactVelocity;
-    }
-
-    /**
-     * Calculates an orthonormal basis for the contact point, based on the
-     * primary friction direction (for anisotropic friction) or a random
-     * orientation (for isotropic friction).
-     */
-    private Vector3f[] contactTangent = {new Vector3f(), new Vector3f()};
-
-    protected void calculateContactBasis() {
+    private void calculateContactBasis(Matrix3f contactToWorld, Vector3f contactNormal) {
+        contactToWorld.m00(contactNormal.x());
+        contactToWorld.m01(contactNormal.y());
+        contactToWorld.m02(contactNormal.z());
 
         // Check whether the Z-axis is nearer to the X or Y axis
         if (Math.abs(contactNormal.x()) > Math.abs(contactNormal.y())) {
@@ -211,68 +209,47 @@ public class Contact {
             float s = 1.0f / (float) Math.sqrt(contactNormal.z() * contactNormal.z()
                     + contactNormal.x() * contactNormal.x());
 
-            // The new X-axis is at right angles to the world Y-axis
-            contactTangent[0].x = contactNormal.z() * s;
-            contactTangent[0].y = 0;
-            contactTangent[0].z = -contactNormal.x() * s;
+            contactToWorld.m10(contactNormal.z() * s);
+            contactToWorld.m11(0);
+            contactToWorld.m12(-contactNormal.x() * s);
 
-            // The new Y-axis is at right angles to the new X- and Z- axes
-            //  contactTangent[1].x = contactNormal.y * contactTangent[0].x; //original
-            contactTangent[1].x = contactNormal.y() * contactTangent[0].z();
-            contactTangent[1].y = contactNormal.z() * contactTangent[0].x() - contactNormal.x() * contactTangent[0].z();
-            contactTangent[1].z = -contactNormal.y() * contactTangent[0].x();
+            contactToWorld.m20(contactNormal.y() * contactToWorld.m12());
+            contactToWorld.m21(contactNormal.z() * contactToWorld.m10() - contactNormal.x() * contactToWorld.m12());
+            contactToWorld.m22(-contactNormal.y() * contactToWorld.m10());
         } else {
             // Scaling factor to ensure the results are normalised
             float s = 1.0f / (float) Math.sqrt(contactNormal.z() * contactNormal.z()
                     + contactNormal.y() * contactNormal.y());
 
-            // The new X-axis is at right angles to the world X-axis
-            contactTangent[0].x = 0;
-            contactTangent[0].y = -contactNormal.z() * s;
-            contactTangent[0].z = contactNormal.y() * s;
+            contactToWorld.m10(0);
+            contactToWorld.m11(-contactNormal.z() * s);
+            contactToWorld.m12(contactNormal.y() * s);
 
-            // The new Y-axis is at right angles to the new X- and Z- axes
-            contactTangent[1].x = contactNormal.y() * contactTangent[0].z() - contactNormal.z() * contactTangent[0].y();
-            contactTangent[1].y = -contactNormal.x() * contactTangent[0].z();
-            contactTangent[1].z = contactNormal.x() * contactTangent[0].y();
+            contactToWorld.m20(contactNormal.y() * contactToWorld.m12() - contactNormal.z() * contactToWorld.m11());
+            contactToWorld.m21(-contactNormal.x() * contactToWorld.m12());
+            contactToWorld.m22(contactNormal.x() * contactToWorld.m11());
         }
-
-        // Make a matrix from the three vectors.
-        contactToWorld.set(contactNormal, contactTangent[0], contactTangent[1]);
-
     }
 
-    /**
-     * Performs an inertia-weighted impulse based resolution of this contact
-     * alone.
-     */
     protected void applyVelocityChange(Vector3f[] velocityChange, Vector3f[] rotationChange) {
-        // Get hold of the inverse mass and inverse inertia tensor, both in
-        // world coordinates.
-        Matrix3f[] inverseInertiaTensor = new Matrix3f[2];
-        inverseInertiaTensor[0] = body[0].getInverseInertiaTensorWorld();
-        if (body[1] != null) {
-            inverseInertiaTensor[1] = body[1].getInverseInertiaTensorWorld();
-        }
-
         // We will calculate the impulse for each contact axis
-        Vector3f impulse;
+        Vector3f impulse = new Vector3f();
 
         if (friction == 0.0f) {
             // Use the short format for frictionless contacts
-            impulse = calculateFrictionlessImpulse(inverseInertiaTensor);
+            calculateFrictionlessImpulse(impulse);
         } else {
             // Otherwise we may have impulses that aren't in the direction of the
             // contact, so we need the more complex version.
-            impulse = calculateFrictionImpulse(inverseInertiaTensor);
+            calculateFrictionImpulse(impulse);
         }
 
         // Convert impulse to world coordinates
         impulse.mul(contactToWorld);
 
         // Split in the impulse into linear and rotational components
-        Vector3f impulsiveTorque = new Vector3f(relativeContactPosition[0]).cross(impulse);
-        rotationChange[0].set(impulsiveTorque).mul(inverseInertiaTensor[0]);
+        rotationChange[0].set(localContactPoint[0]).cross(impulse);
+        rotationChange[0].mul(body[0].getInverseInertiaTensorWorld());
         velocityChange[0].set(impulse).mul(body[0].getInverseMass());
 
         // Apply the changes
@@ -281,8 +258,8 @@ public class Contact {
 
         if (body[1] != null) {
             // Work out getBody one's linear and angular changes
-            impulsiveTorque.set(impulse).cross(relativeContactPosition[1]);
-            rotationChange[1].set(impulsiveTorque).mul(inverseInertiaTensor[1]);
+            rotationChange[1].set(impulse).cross(localContactPoint[1]);
+            rotationChange[1].mul(body[1].getInverseInertiaTensorWorld());
             velocityChange[1].set(impulse).mul(-body[1].getInverseMass());
 
             // And apply them.
@@ -291,17 +268,10 @@ public class Contact {
         }
     }
 
-    /**
-     * Performs an inertia weighted penetration resolution of this contact
-     * alone.
-     */
     protected void applyPositionChange(Vector3f[] linearChange, Vector3f[] angularChange, float penetration) {
-
         float totalInertia = 0;
-        float[] linearInertia = {0, 0};
         float[] angularInertia = {0, 0};
-        // We need to work out the inertia of each object in the direction
-        // of the contact normal, due to angular inertia only.
+
         Vector3f angularInertiaWorld = new Vector3f();
         for (int i = 0; i < 2; i++) {
             if (body[i] == null) {
@@ -309,26 +279,17 @@ public class Contact {
             }
             // Use the same procedure as for calculating frictionless
             // velocity change to work out the angular inertia.
-            angularInertiaWorld.set(relativeContactPosition[i]).cross(contactNormal);
+            angularInertiaWorld.set(localContactPoint[i]).cross(contactNormal);
             angularInertiaWorld.mul(body[i].getInverseInertiaTensorWorld());
-            angularInertiaWorld.cross(relativeContactPosition[i]);
+            angularInertiaWorld.cross(localContactPoint[i]);
             angularInertia[i] = angularInertiaWorld.dot(contactNormal);
 
-            // The linear component is simply the inverse mass
-            linearInertia[i] = body[i].getInverseMass();
-
             // Keep track of the total inertia from all components
-            totalInertia += linearInertia[i] + angularInertia[i];
-
-            // We break the loop here so that the totalInertia value is
-            // completely calculated (by both iterations) before
-            // continuing.
+            totalInertia += body[i].getInverseMass() + angularInertia[i];
         }
 
         // Loop through again calculating and applying the changes
         float angularLimit = 0.2f;
-        float[] angularMove = {0, 0};
-        float[] linearMove = {0, 0};
         for (int i = 0; i < 2; i++) {
             if (body[i] == null) {
                 continue;
@@ -336,83 +297,67 @@ public class Contact {
             // The linear and angular movements required are in proportion to
             // the two inverse inertias.
             float sign = (i == 0) ? 1 : -1;
-            angularMove[i] = sign * penetration * (angularInertia[i] / totalInertia);
-            linearMove[i] = sign * penetration * (linearInertia[i] / totalInertia);
+            float angularMove = sign * penetration * (angularInertia[i] / totalInertia);
+            float linearMove = sign * penetration * (body[i].getInverseMass() / totalInertia);
 
             // To avoid angular projections that are too great (when mass is large
             // but inertia tensor is small) limit the angular move.
-            Vector3f projection = new Vector3f(relativeContactPosition[i]);
-            projection.fma(-relativeContactPosition[i].dot(contactNormal), contactNormal);
+            Vector3f projection = new Vector3f(localContactPoint[i]);
+            projection.fma(-localContactPoint[i].dot(contactNormal), contactNormal);
 
             // Use the small angle approximation for the sine of the angle (i.e.
             // the magnitude would be sine(angularLimit) * projection.magnitude
             // but we approximate sine(angularLimit) to angularLimit).
             float maxMagnitude = angularLimit * projection.length();
 
-            if (angularMove[i] < -maxMagnitude) {
-                angularMove[i] = -maxMagnitude;
-                linearMove[i] = angularMove[i] + linearMove[i];
-                linearMove[i] -= angularMove[i];
-            } else if (angularMove[i] > maxMagnitude) {
-                angularMove[i] = maxMagnitude;
-                linearMove[i] = angularMove[i] + linearMove[i];
-                linearMove[i] -= angularMove[i];
+            if (angularMove < -maxMagnitude) {
+                angularMove = -maxMagnitude;
+                linearMove += angularMove;
+                linearMove -= angularMove;
+            } else if (angularMove > maxMagnitude) {
+                angularMove = maxMagnitude;
+                linearMove += angularMove;
+                linearMove -= angularMove;
             }
 
             // We have the linear amount of movement required by turning
             // the rigid getBody (in angularMove[i]). We now need to
             // calculate the desired rotation to achieve that.
-            if (angularMove[i] < .00001f) {
+            if (angularMove < .00001f) {
                 // Easy case - no angular movement means no rotation.
                 angularChange[i].set(0, 0, 0);
             } else {
                 // Work out the direction we'd like to rotate in.
-                angularChange[i].set(relativeContactPosition[i]);
+                angularChange[i].set(localContactPoint[i]);
                 angularChange[i].cross(contactNormal);
 
                 // Work out the direction we'd need to rotate to achieve that
                 angularChange[i].mul(body[i].getInverseInertiaTensorWorld());
-                angularChange[i].mul(angularMove[i] / angularInertia[i]);
+                angularChange[i].mul(angularMove / angularInertia[i]);
             }
 
             // Velocity change is easier - it is just the linear movement
             // along the contact normal.
-            linearChange[i].set(contactNormal).mul(linearMove[i]);
+            linearChange[i].set(contactNormal).mul(linearMove);
 
             Transform transform = body[i].getTransform();
-
             transform.getLocalRotation().integrate(1, angularChange[i].x(), angularChange[i].y(), angularChange[i].z());
-
-            // Apply the linear movement
-            transform.getLocalPosition().fma(linearMove[i], contactNormal);
+            transform.getLocalPosition().fma(linearMove, contactNormal);
             transform.setDirty(true);
 
-            // We need to calculate the derived data for any getBody that is
-            // asleep, so that the changes are reflected in the object's
-            // data. Otherwise the resolution will not change the position
-            // of the object, and the next collision detection round will
-            // have the same penetration.
             if (!body[i].isAwake()) {
                 body[i].calculateIITWorld();
             }
         }
     }
 
-    /**
-     * Calculates the impulse needed to resolve this contact, given that the
-     * contact has no friction. A pair of inertia tensors - one for each contact
-     * object - is specified to save calculation time: the calling function has
-     * access to these anyway.
-     */
-    protected Vector3f calculateFrictionlessImpulse(Matrix3f[] inverseInertiaTensor) {
-        Vector3f impulseContact = new Vector3f();
-
+    protected void calculateFrictionlessImpulse(Vector3f impulseContact) {
         // Build a vector that shows the change in velocity in
         // world space for a unit impulse in the direction of the contact
         // normal.
-        Vector3f deltaVelWorld = new Vector3f(relativeContactPosition[0]).cross(contactNormal);
-        deltaVelWorld.mul(inverseInertiaTensor[0]);
-        deltaVelWorld.cross(relativeContactPosition[0]);
+        Vector3f deltaVelWorld = new Vector3f(localContactPoint[0]).cross(contactNormal);
+        deltaVelWorld.mul(body[0].getInverseInertiaTensorWorld());
+        deltaVelWorld.cross(localContactPoint[0]);
 
         // Work out the change in velocity in contact coordiantes.
         float deltaVelocity = deltaVelWorld.dot(contactNormal);
@@ -422,9 +367,9 @@ public class Contact {
         // Check if we need to the second getBody's data
         if (body[1] != null) {
             // Go through the same transformation sequence again
-            deltaVelWorld.set(relativeContactPosition[1]).cross(contactNormal);
-            deltaVelWorld.mul(inverseInertiaTensor[1]);
-            deltaVelWorld.cross(relativeContactPosition[1]);
+            deltaVelWorld.set(localContactPoint[1]).cross(contactNormal);
+            deltaVelWorld.mul(body[1].getInverseInertiaTensorWorld());
+            deltaVelWorld.cross(localContactPoint[1]);
 
             // Add the change in velocity due to rotation
             deltaVelocity += deltaVelWorld.dot(contactNormal);
@@ -437,30 +382,23 @@ public class Contact {
         impulseContact.x = desiredDeltaVelocity / deltaVelocity;
         impulseContact.y = 0;
         impulseContact.z = 0;
-        return impulseContact;
 
     }
 
-    /**
-     * Calculates the impulse needed to resolve this contact, given that the
-     * contact has a non-zero coefficient of friction. A pair of inertia tensors
-     * - one for each contact object - is specified to save calculation time:
-     * the calling function has access to these anyway.
-     */
-    protected Vector3f calculateFrictionImpulse(Matrix3f[] inverseInertiaTensor) {
+    protected void calculateFrictionImpulse(Vector3f impulseContact) {
 
         // The equivalent of a cross product in matrices is multiplication
         // by a skew symmetric matrix - we build the matrix for converting
         // between linear and angular quantities.
         Matrix3f impulseToTorque = new Matrix3f().setSkewSymmetric(
-                relativeContactPosition[0].z(),
-                relativeContactPosition[0].y(),
-                relativeContactPosition[0].x());
+                localContactPoint[0].z(),
+                localContactPoint[0].y(),
+                localContactPoint[0].x());
 
         // Build the matrix to convert contact impulse to change in velocity
         // in world coordinates.
         Matrix3f deltaVelWorld = new Matrix3f(impulseToTorque);
-        deltaVelWorld.mul(inverseInertiaTensor[0]);
+        deltaVelWorld.mul(body[0].getInverseInertiaTensorWorld());
         deltaVelWorld.mul(impulseToTorque);
         deltaVelWorld.scale(-1);
 
@@ -470,13 +408,13 @@ public class Contact {
             // Set the cross product matrix
 
             impulseToTorque.setSkewSymmetric(
-                    relativeContactPosition[1].z(),
-                    relativeContactPosition[1].y(),
-                    relativeContactPosition[1].x());
+                    localContactPoint[1].z(),
+                    localContactPoint[1].y(),
+                    localContactPoint[1].x());
 
             // Calculate the velocity change matrix
             Matrix3f deltaVelWorld2 = new Matrix3f(impulseToTorque);
-            deltaVelWorld2.mul(inverseInertiaTensor[1]);
+            deltaVelWorld2.mul(body[1].getInverseInertiaTensorWorld());
             deltaVelWorld2.mul(impulseToTorque);
             deltaVelWorld2.scale(-1);
 
@@ -498,7 +436,7 @@ public class Contact {
         deltaVelocity.m22 += inverseMass;
 
         // Find the target velocities to kill
-        Vector3f impulseContact = new Vector3f(desiredDeltaVelocity, -contactVelocity.y(), -contactVelocity.z());
+        impulseContact.set(desiredDeltaVelocity, -localContactVelocity.y(), -localContactVelocity.z());
         // Find the impulse to kill target velocities        
         // Invert to get the impulse needed per unit velocity
         impulseContact.mul(deltaVelocity.invert(new Matrix3f()));
@@ -516,7 +454,6 @@ public class Contact {
             impulseContact.y *= friction * impulseContact.x();
             impulseContact.z *= friction * impulseContact.x();
         }
-        return impulseContact;
     }
 
 }
