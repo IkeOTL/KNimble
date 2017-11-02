@@ -112,27 +112,31 @@ public class Contact {
         }
 
         // Calculate an setup of axis at the contact point.
-        calculateContactBasis(contactToWorld, contactNormal);
+        calculateContactBasis();
 
         // Store the relative position of the contact relative to each getBody
-        calculateLocal(delta, localContactPoint, worldContactPoint, localContactVelocity);
+        calculateLocal(delta);
 
         // Calculate the desired change in velocity for resolution
         calculateDesiredDeltaVelocity(delta);
     }
 
-    private void calculateLocal(float delta, Vector3f[] localContactPoint, Vector3f contactPoint, Vector3f localContactVelocity) {
+    private void calculateLocal(float delta) {
         Vector3f out = new Vector3f();
-        localContactPoint[0].set(contactPoint).sub(body[0].getTransform().getWorldPosition());
-        localContactVelocity.set(calculateLocalVelocity(body[0], localContactPoint[0], delta, out));
+        localContactPoint[0].set(worldContactPoint).sub(body[0].getTransform().getWorldPosition());
+
+        calculateLocalVelocity(body[0], localContactPoint[0], delta, out);
+        localContactVelocity.set(out);
 
         if (body[1] != null) {
-            localContactPoint[1].set(contactPoint).sub(body[1].getTransform().getWorldPosition());
-            localContactVelocity.sub(calculateLocalVelocity(body[1], localContactPoint[1], delta, out));
+            localContactPoint[1].set(worldContactPoint).sub(body[1].getTransform().getWorldPosition());
+
+            calculateLocalVelocity(body[1], localContactPoint[1], delta, out);
+            localContactVelocity.sub(out);
         }
     }
 
-    private Vector3f calculateLocalVelocity(Rigidbody thisBody, Vector3f contactPoint, float duration, Vector3f contactVelocity) {
+    private void calculateLocalVelocity(Rigidbody thisBody, Vector3f contactPoint, float duration, Vector3f contactVelocity) {
         contactVelocity.set(thisBody.getAngularVelocity()).cross(contactPoint);
         contactVelocity.add(thisBody.getLinearVelocity());
         contactVelocity.mulTranspose(contactToWorld);
@@ -142,8 +146,6 @@ public class Contact {
         accVelocity.x = 0;
 
         contactVelocity.add(accVelocity);
-
-        return contactVelocity;
     }
 
     private void swapBodies() {
@@ -198,7 +200,7 @@ public class Contact {
         desiredDeltaVelocity = -localContactVelocity.x() - thisRestitution * (localContactVelocity.x() - velocityFromAcc);
     }
 
-    private void calculateContactBasis(Matrix3f contactToWorld, Vector3f contactNormal) {
+    private void calculateContactBasis() {
         contactToWorld.m00(contactNormal.x());
         contactToWorld.m01(contactNormal.y());
         contactToWorld.m02(contactNormal.z());

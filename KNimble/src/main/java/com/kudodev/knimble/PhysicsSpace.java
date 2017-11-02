@@ -61,13 +61,19 @@ public class PhysicsSpace {
 
             outer:
             for (int i = 0; i < colliders.size(); i++) {
+
+                Collider c0 = colliders.get(i);
+                // find way to only recalc when dirty
+                c0.recalcuateBounds();
+
                 for (int j = i + 1; j < colliders.size(); j++) {
 
-                    Collider c0 = colliders.get(i);
                     Collider c1 = colliders.get(j);
+                    // find way to only recalc when dirty
+                    c1.recalcuateBounds();
 
-                    boolean intersects = c0.intersectsWith(c1);
-                    if (!intersects) {
+                    if (!c0.getBoundingCollider().intersectsWith(c1.getBoundingCollider())
+                            || !c0.intersectsWith(c1)) {
                         continue;
                     }
 
@@ -82,11 +88,11 @@ public class PhysicsSpace {
                 }
             }
 
-            for (RigidbodyLink c : rigidbodyLinks) {
+            for (int i = 0; i < rigidbodyLinks.size(); ++i) {
                 if (!contactCache.hasMoreContacts()) {
                     break;
                 }
-                c.tick(contactCache);
+                rigidbodyLinks.get(0).tick(contactCache);
             }
 
             contactResolver.setIterations(contactCache.getContactCount() * 2);
@@ -96,8 +102,8 @@ public class PhysicsSpace {
     }
 
     public void addBody(Rigidbody r, Collider c) {
-        rigidbodies.add(r);
-        colliders.add(c);
+        addRigidbody(r);
+        addCollider(c);
     }
 
     public void addRigidbody(Rigidbody r) {
@@ -105,6 +111,7 @@ public class PhysicsSpace {
     }
 
     public void addCollider(Collider c) {
+        c.createBoundingCollider();
         colliders.add(c);
     }
 

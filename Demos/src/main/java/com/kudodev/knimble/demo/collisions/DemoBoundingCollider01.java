@@ -35,14 +35,14 @@ import org.joml.Vector3f;
  *
  * @author IkeOTL
  */
-public class DemoStressTest0 extends RenderLoop {
+public class DemoBoundingCollider01 extends RenderLoop {
 
-    public DemoStressTest0(String title, PhysicsSpace physicsSpace) {
+    public DemoBoundingCollider01(String title, PhysicsSpace physicsSpace) {
         super(title, physicsSpace);
     }
 
     public static void main(String[] args) throws Exception {
-        new DemoStressTest0("Demo: Sphere/Cube Collision", new PhysicsSpace()).start();
+        new DemoBoundingCollider01("Demo: Sphere/Cube Collision", new PhysicsSpace()).start();
     }
 
     Mesh cube;
@@ -51,7 +51,7 @@ public class DemoStressTest0 extends RenderLoop {
 
     @Override
     protected List<Shape> init(PhysicsSpace physicsSpace) {
-        setWireframe(false);
+//        setWireframe(false);
         camera.getPosition().set(0, 5, 0);
         camera.getRotation().rotateAxis((float) Math.toRadians(20), new Vector3f(1, 0, 0));
 
@@ -70,6 +70,20 @@ public class DemoStressTest0 extends RenderLoop {
 
         physicsSpace.addForceGenerator(new GravityForce(0, -10, 0));
 
+        Rigidbody r2 = new Rigidbody(0);
+        Collider c2 = new CapsuleCollider(r2, 1.5f, .5f);
+        Shape s2 = new Shape(capsule, c2);
+        shapes.add(s2);
+        r2.getTransform().setPosition(-5, 3, -15);
+        r2.setAngularVelocity(2, 0, 0);
+        s2.getColor().set((float) Math.random(), (float) Math.random(), (float) Math.random(), 1);
+        physicsSpace.addBody(r2, c2);
+
+        // bounding box
+        Collider c3 = c2.getBoundingCollider();
+        Shape s3 = new Shape(cube, c3);
+        shapes.add(s3);
+
         return shapes;
     }
     float time = 0;
@@ -80,35 +94,46 @@ public class DemoStressTest0 extends RenderLoop {
         if (time < .5f) {
             return;
         }
-        Rigidbody r0 = new Rigidbody(100);
+        time = 0;
 
+        Rigidbody r0 = new Rigidbody(100);
         Collider c0;
         Shape s0;
 
         int i = ThreadLocalRandom.current().nextInt(3);
         switch (i) {
             case 0:
-//                c0 = new SphereCollider(r0);
-//                s0 = new Shape(sphere, c0);
-//                break;
-            case 1:
-//                c0 = new CapsuleCollider(r0, 1.5f, .5f);
-//                s0 = new Shape(capsule, c0);
-//                break;
-            default:
                 c0 = new BoxCollider(r0);
                 s0 = new Shape(cube, c0);
                 break;
+            case 1:
+                c0 = new CapsuleCollider(r0, 1.5f, .5f);
+                s0 = new Shape(capsule, c0);
+                break;
+            default:
+                c0 = new SphereCollider(r0);
+                s0 = new Shape(sphere, c0);
+                break;
+//                c0 = new BoxCollider(r0);
+//                s0 = new Shape(cube, c0);
+//                break;
+//                c0 = new CapsuleCollider(r0, 1.5f, .5f);
+//                s0 = new Shape(capsule, c0);
+//                break;
         }
 
         shapes.add(s0);
         s0.getColor().set((float) Math.random(), (float) Math.random(), (float) Math.random(), 1);
-//        r0.setRestitution((float) Math.random() * .9f);
-        r0.setRestitution(0);
+        r0.setRestitution((float) Math.random() * .9f);
+//        r0.setRestitution(0);
         r0.setFriction(1);
-        r0.getTransform().setPosition((int) (Math.random() * 10), 5, -15f);
-//        r0.getTransform().setPosition((float) Math.random(), 5, (float) Math.random() - 15f);
+//        r0.getTransform().setPosition((int) (Math.random() * 10), 5, -15f);
+        r0.getTransform().setPosition((float) Math.random(), 5, (float) Math.random() - 15f);
         physicsSpace.addBody(r0, c0);
-        time = 0;
+
+        // bounding box
+        Collider c1 = c0.getBoundingCollider();
+        Shape s1 = new Shape(cube, c1);
+        shapes.add(s1);
     }
 }

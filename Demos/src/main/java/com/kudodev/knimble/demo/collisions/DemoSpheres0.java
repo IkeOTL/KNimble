@@ -68,7 +68,7 @@ public class DemoSpheres0 extends RenderLoop {
         Shape s2 = new Shape(sphere, c2);
         s2.getColor().set(0, 0, 1, 1);
         shapes.add(s2);
-        r2.getTransform().setPosition(.5f, 1.2f, -5f);
+        r2.getTransform().setPosition(1f, 2f, -5f);
         physicsSpace.addBody(r2, c2);
 
         return shapes;

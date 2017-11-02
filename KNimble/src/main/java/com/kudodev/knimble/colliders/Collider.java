@@ -19,6 +19,7 @@ import com.kudodev.knimble.Rigidbody;
 import com.kudodev.knimble.RigidbodyTransform;
 import com.kudodev.knimble.contact.ContactCache;
 import com.kudodev.knimble.Transform;
+import org.joml.Vector3f;
 
 /**
  *
@@ -27,12 +28,14 @@ import com.kudodev.knimble.Transform;
 public abstract class Collider {
 
     public enum ColliderType {
-        SPHERE, CUBE, CAPSULE
+        AABB, SPHERE, CUBE, CAPSULE
     };
 
     private final ColliderType type;
     private final Rigidbody rigidbody;
-    private final Transform transform;
+    private final RigidbodyTransform transform;
+
+    protected AABBCollider boundingCollider = null;
 
     public Collider(ColliderType type, RigidbodyTransform transform) {
         this.type = type;
@@ -54,11 +57,24 @@ public abstract class Collider {
         this(type, new RigidbodyTransform());
     }
 
+    public abstract void createBoundingCollider();
+
     public Rigidbody getRigidbody() {
         return rigidbody;
     }
 
-    public Transform getTransform() {
+    public AABBCollider getBoundingCollider() {
+        return boundingCollider;
+    }
+
+    public void recalcuateBounds() {
+        if (boundingCollider == null) {
+            createBoundingCollider();
+        }
+        boundingCollider.recalcuateBounds();
+    }
+
+    public RigidbodyTransform getTransform() {
         return transform;
     }
 
@@ -68,6 +84,8 @@ public abstract class Collider {
 
     public boolean intersectsWith(Collider other) {
         switch (other.type) {
+            case AABB:
+                return intersectsWith((AABBCollider) other);
             case CUBE:
                 return intersectsWith((BoxCollider) other);
             case SPHERE:
@@ -81,6 +99,9 @@ public abstract class Collider {
 
     public void createCollision(Collider other, ContactCache contactCache) {
         switch (other.type) {
+            // that would look interesting
+            // case AABB:
+            // createCollision((AABBCollider) other, contactCache);
             case CUBE:
                 createCollision((BoxCollider) other, contactCache);
                 break;
@@ -96,6 +117,8 @@ public abstract class Collider {
     }
 
     public abstract void updateInertiaTensor();
+
+    public abstract boolean intersectsWith(AABBCollider other);
 
     public abstract boolean intersectsWith(SphereCollider other);
 

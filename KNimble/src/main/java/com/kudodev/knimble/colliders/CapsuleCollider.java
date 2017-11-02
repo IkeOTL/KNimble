@@ -56,6 +56,13 @@ public class CapsuleCollider extends Collider {
     }
 
     @Override
+    public void createBoundingCollider() {
+        boundingCollider = new AABBCollider(
+                getTransform(),
+                new Vector3f(radius, radius + length * .5f, -radius));
+    }
+
+    @Override
     public void updateInertiaTensor() {
         if (getRigidbody() == null) {
             return;
@@ -84,6 +91,11 @@ public class CapsuleCollider extends Collider {
         inertiaTensor.m22(inertiaTensor.m22() + temp2);
 
         getRigidbody().setInertiaTensor(inertiaTensor);
+    }
+
+    @Override
+    public boolean intersectsWith(AABBCollider other) {
+        return other.intersectsWith(this);
     }
 
     @Override

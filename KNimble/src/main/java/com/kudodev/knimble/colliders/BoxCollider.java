@@ -50,6 +50,11 @@ public class BoxCollider extends Collider {
         this(null, halfExtents);
     }
 
+    @Override
+    public void createBoundingCollider() {
+        boundingCollider = new AABBCollider(getTransform(), new Vector3f(extents));
+    }
+
     public Vector3f getExtents() {
         return extents;
     }
@@ -67,6 +72,11 @@ public class BoxCollider extends Collider {
         inertiaTensor.m11(0.333f * mass * (extents.x() * extents.x() + extents.z() * extents.z()));
         inertiaTensor.m22(0.333f * mass * (extents.x() * extents.x() + extents.y() * extents.y()));
         getRigidbody().setInertiaTensor(inertiaTensor);
+    }
+
+    @Override
+    public boolean intersectsWith(AABBCollider other) {
+        return other.intersectsWith(this);
     }
 
     @Override

@@ -16,7 +16,6 @@
 package com.kudodev.knimble.colliders;
 
 import com.kudodev.knimble.Rigidbody;
-import com.kudodev.knimble.RigidbodyNodeTransform;
 import com.kudodev.knimble.contact.Contact;
 import com.kudodev.knimble.contact.ContactCache;
 import org.joml.Matrix3f;
@@ -60,6 +59,28 @@ public class SphereCollider extends Collider {
     }
 
     @Override
+    public void createBoundingCollider() {
+        boundingCollider = new AABBCollider(
+                getTransform(),
+                new Vector3f(radius));
+    }
+
+    @Override
+    public void recalcuateBounds() {
+        boundingCollider.getWorldMinimum()
+                .set(getTransform().getWorldPosition())
+                .sub(boundingCollider.getDefaultExtents());
+        boundingCollider.getWorldMaximum()
+                .set(getTransform().getWorldPosition())
+                .add(boundingCollider.getDefaultExtents());
+    }
+
+    @Override
+    public boolean intersectsWith(AABBCollider other) {
+        return other.intersectsWith(this);
+    }
+
+    @Override
     public boolean intersectsWith(SphereCollider other) {
         return Intersection.getDistanceSq(this, other) <= 0;
     }
@@ -82,7 +103,6 @@ public class SphereCollider extends Collider {
 
     @Override
     public void createCollision(SphereCollider other, ContactCache contactCache) {
-
         Vector3f pos0 = getTransform().getWorldPosition();
         Vector3f pos1 = other.getTransform().getWorldPosition();
 
@@ -96,7 +116,6 @@ public class SphereCollider extends Collider {
 
     @Override
     public void createCollision(BoxCollider other, ContactCache contactCache) {
-
         Vector3f closestPoint = new Vector3f();
         Vector3f pos = getTransform().getWorldPosition();
 

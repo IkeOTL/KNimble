@@ -149,7 +149,7 @@ public class Rigidbody {
         this.restitution = restitution;
     }
 
-    public Transform getTransform() {
+    public RigidbodyTransform getTransform() {
         return transform;
     }
 

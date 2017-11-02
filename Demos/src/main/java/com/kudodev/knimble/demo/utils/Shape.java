@@ -15,6 +15,7 @@ package com.kudodev.knimble.demo.utils;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import com.kudodev.knimble.colliders.AABBCollider;
 import com.kudodev.knimble.colliders.BoxCollider;
 import com.kudodev.knimble.colliders.Collider;
 import com.kudodev.knimble.colliders.SphereCollider;
@@ -61,6 +62,14 @@ public class Shape {
         } else if (collider instanceof SphereCollider) {
             float r = ((SphereCollider) collider).getRadius();
             out.scale(r * 2, r * 2, r * 2);
+        } else if (collider instanceof AABBCollider) {
+            // AABB is special, it's orientation doesnt matter
+            // just position and extents
+            AABBCollider aabb = (AABBCollider) collider;
+            Vector3f v = new Vector3f(aabb.getWorldMaximum())
+                    .sub(aabb.getWorldMinimum()).mul(.5f);
+            out.identity().translate(collider.getTransform().getWorldPosition());
+            out.scale(v.x * 2, v.y * 2, v.z * 2);
         }
 
         return out;

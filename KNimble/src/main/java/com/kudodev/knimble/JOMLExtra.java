@@ -65,4 +65,12 @@ public class JOMLExtra {
         }
         return dest;
     }
+
+    public static Vector3f transformDirectionAbs(Matrix4f m, Vector3f v) {
+        return v.set(
+                Math.abs(m.m00()) * v.x() + Math.abs(m.m10()) * v.y() + Math.abs(m.m20()) * v.z(),
+                Math.abs(m.m01()) * v.x() + Math.abs(m.m11()) * v.y() + Math.abs(m.m21()) * v.z(),
+                Math.abs(m.m02()) * v.x() + Math.abs(m.m12()) * v.y() + Math.abs(m.m22()) * v.z()
+        );
+    }
 }
